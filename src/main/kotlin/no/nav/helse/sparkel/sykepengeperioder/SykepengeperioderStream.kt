@@ -2,7 +2,6 @@ package no.nav.helse.sparkel.sykepengeperioder
 
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.SerializationFeature
-import com.fasterxml.jackson.databind.node.JsonNodeFactory
 import com.fasterxml.jackson.databind.node.ObjectNode
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
@@ -12,6 +11,8 @@ import io.ktor.application.ApplicationStopping
 import io.ktor.application.log
 import io.ktor.util.KtorExperimentalAPI
 import no.nav.helse.sparkel.sykepengeperioder.serde.JsonNodeSerde
+import no.nav.helse.sparkel.sykepengeperioder.spole.AzureClient
+import no.nav.helse.sparkel.sykepengeperioder.spole.SpoleClient
 import org.apache.kafka.clients.CommonClientConfigs
 import org.apache.kafka.common.config.SaslConfigs
 import org.apache.kafka.common.config.SslConfigs
@@ -23,16 +24,12 @@ import org.apache.kafka.streams.Topology
 import org.apache.kafka.streams.errors.LogAndFailExceptionHandler
 import org.apache.kafka.streams.kstream.Consumed
 import org.apache.kafka.streams.kstream.Produced
-import org.slf4j.LoggerFactory
 import java.io.File
 import java.time.Duration
-import java.time.LocalDateTime
 import java.util.*
 
-private val sykepengeperioderBehov = "sykepengeperioder"
-private val behovTopic = "privat-helse-sykepenger-behov"
-
-private val log = LoggerFactory.getLogger("sparkel-sykepengeperioder")
+private const val sykepengeperioderBehov = "sykepengeperioder"
+private const val behovTopic = "privat-helse-sykepenger-behov"
 
 private val objectMapper = jacksonObjectMapper()
         .registerModule(JavaTimeModule())
@@ -40,6 +37,16 @@ private val objectMapper = jacksonObjectMapper()
 
 @KtorExperimentalAPI
 fun Application.sykepengeperioderApplication(): KafkaStreams {
+
+    val azureClient = AzureClient(
+            tenantUrl = "https://login.microsoftonline.com/" + environment.config.property("azure.tenant_id").getString(),
+            clientId = environment.config.property("azure.client_id").getString(),
+            clientSecret = environment.config.property("azure.client_secret").getString()
+    )
+    val spoleClient = SpoleClient(
+            baseUrl = environment.config.property("spole.url").getString(),
+            accesstokenScope = environment.config.property("spole.scope").getString(),
+            azureClient = azureClient)
 
     val builder = StreamsBuilder()
 
@@ -52,10 +59,12 @@ fun Application.sykepengeperioderApplication(): KafkaStreams {
         value.erBehov(sykepengeperioderBehov)
     }.filterNot { _, value ->
         value.harLøsning()
+    }.filter { _, value ->
+        value.has("aktørId")
     }.peek { key, value ->
         log.info("løser behov key=$key")
     }.mapValues { _, value ->
-        value.setLøsning(lagLøsning())
+        value.setLøsning(lagLøsning(spoleClient, value["aktørId"].textValue()))
     }.to(behovTopic, Produced.with(Serdes.String(), JsonNodeSerde(objectMapper)))
 
     return KafkaStreams(builder.build(), streamsConfig()).apply {
@@ -77,8 +86,9 @@ private fun JsonNode.erBehov(type: String) =
 private fun JsonNode.harLøsning() =
         has("løsning")
 
-internal fun lagLøsning() = JsonNodeFactory.instance
-        .objectNode().put("opprettet", LocalDateTime.now().toString())
+internal fun lagLøsning(spoleClient: SpoleClient, aktørId: String): JsonNode {
+    return objectMapper.valueToTree(spoleClient.hentSykepengeperioder(aktørId))
+}
 
 private fun JsonNode.setLøsning(løsning: JsonNode) =
         (this as ObjectNode).set("løsning", løsning)

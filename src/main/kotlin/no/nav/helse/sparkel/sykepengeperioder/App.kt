@@ -8,6 +8,8 @@ import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
 import io.ktor.util.KtorExperimentalAPI
 import no.nav.helse.sparkel.sykepengeperioder.nais.nais
+import java.io.File
+import java.io.FileNotFoundException
 import java.util.concurrent.TimeUnit
 
 @KtorExperimentalAPI
@@ -23,6 +25,19 @@ fun createConfigFromEnvironment(env: Map<String, String>) =
 
             env["NAV_TRUSTSTORE_PATH"]?.let { put("kafka.truststore-path", it) }
             env["NAV_TRUSTSTORE_PASSWORD"]?.let { put("kafka.truststore-password", it) }
+
+            put("spole.url", env.getOrDefault("SPOLE_URL", "http://spole.default.svc.nais.local"))
+            put("spole.scope", env.getValue("SPOLE_SCOPE"))
+            put("azure.tenant_id", env.getValue("AZURE_TENANT_ID"))
+            put("azure.client_id", "/var/run/secrets/nais.io/azure/client_id".readFile() ?: env.getValue("AZURE_CLIENT_ID"))
+            put("azure.client_secret", "/var/run/secrets/nais.io/azure/client_secret".readFile() ?: env.getValue("AZURE_CLIENT_SECRET"))
+        }
+
+private fun String.readFile() =
+        try {
+            File(this).readText(Charsets.UTF_8)
+        } catch (err: FileNotFoundException) {
+            null
         }
 
 @KtorExperimentalAPI

@@ -28,6 +28,9 @@ spec:
   prometheus:
     enabled: true
     path: /metrics
+  webproxy: true
+  secureLogs:
+    enabled: true
   vault:
     enabled: true
     paths:
@@ -38,3 +41,7 @@ spec:
   env:
   - name: KAFKA_BOOTSTRAP_SERVERS
     value: a01apvl00145.adeo.no:8443,a01apvl00146.adeo.no:8443,a01apvl00147.adeo.no:8443,a01apvl00148.adeo.no:8443,a01apvl00149.adeo.no:8443,a01apvl00150.adeo.no:8443
+  - name: AZURE_TENANT_ID
+    value: 62366534-1ec3-4962-8869-9b5535279d0b
+  - name: SPOLE_SCOPE
+    value: https://nav.no/helsespole/.default
