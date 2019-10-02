@@ -22,6 +22,7 @@ import org.apache.kafka.streams.StreamsConfig
 import org.apache.kafka.streams.Topology
 import org.apache.kafka.streams.errors.LogAndFailExceptionHandler
 import org.apache.kafka.streams.kstream.Consumed
+import org.apache.kafka.streams.kstream.Produced
 import org.slf4j.LoggerFactory
 import java.io.File
 import java.time.Duration
@@ -55,7 +56,7 @@ fun Application.sykepengeperioderApplication(): KafkaStreams {
         log.info("løser behov key=$key")
     }.mapValues { _, value ->
         value.setLøsning(lagLøsning())
-    }.to(behovTopic)
+    }.to(behovTopic, Produced.with(Serdes.String(), JsonNodeSerde(objectMapper)))
 
     return KafkaStreams(builder.build(), streamsConfig()).apply {
         addShutdownHook(this)
