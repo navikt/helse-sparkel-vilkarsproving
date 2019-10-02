@@ -81,17 +81,17 @@ fun Application.sykepengeperioderApplication(): KafkaStreams {
 }
 
 private fun JsonNode.erBehov(type: String) =
-        has("behov") && this["behov"].textValue() == type
+        has("@behov") && this["@behov"].textValue() == type
 
 private fun JsonNode.harLøsning() =
-        has("løsning")
+        has("@løsning")
 
 internal fun lagLøsning(spoleClient: SpoleClient, aktørId: String): JsonNode {
     return objectMapper.valueToTree(spoleClient.hentSykepengeperioder(aktørId))
 }
 
 private fun JsonNode.setLøsning(løsning: JsonNode) =
-        (this as ObjectNode).set("løsning", løsning)
+        (this as ObjectNode).set("@løsning", løsning)
 
 @KtorExperimentalAPI
 private fun Application.streamsConfig() = Properties().apply {
