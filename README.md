@@ -1,7 +1,5 @@
-Sparkel behov
+Sparkel behov [![Actions Status](https://github.com/navikt/helse-sparkel-behov/workflows/master/badge.svg)](https://github.com/navikt/helse-sparkel-behov/actions)
 =============
-
-[![Actions Status](https://github.com/navikt/helse-sparkel-behov/workflows/master/badge.svg)](https://github.com/navikt/helse-sparkel-behov/actions)
 
 Løser oppslag-behov for andre tjenester i sykepengesfæren.
 
