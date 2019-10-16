@@ -28,7 +28,7 @@ import java.io.File
 import java.time.Duration
 import java.util.*
 
-private const val sykepengeperioderBehov = "sykepengeperioder"
+private const val sykepengeperioderBehov = "Sykepengehistorikk"
 private const val behovTopic = "privat-helse-sykepenger-behov"
 
 private val objectMapper = jacksonObjectMapper()
