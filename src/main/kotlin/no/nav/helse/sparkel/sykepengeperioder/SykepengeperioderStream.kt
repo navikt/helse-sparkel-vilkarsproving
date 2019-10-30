@@ -64,7 +64,14 @@ fun Application.sykepengeperioderApplication(): KafkaStreams {
     }.peek { key, value ->
         log.info("løser behov key=$key")
     }.mapValues { _, value ->
-        value.setLøsning(lagLøsning(spoleClient, value["aktørId"].textValue()))
+        try {
+            value.setLøsning(lagLøsning(spoleClient, value["aktørId"].textValue()))
+        } catch (err: Exception) {
+            log.error("feil ved henting av spole-data: ${err.message}", err)
+            null
+        }
+    }.filterNot { _, value ->
+        value == null
     }.to(behovTopic, Produced.with(Serdes.String(), JsonNodeSerde(objectMapper)))
 
     return KafkaStreams(builder.build(), streamsConfig()).apply {
