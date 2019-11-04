@@ -2,6 +2,7 @@ package no.nav.helse.sparkel.sykepengeperioder.spole
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.slf4j.LoggerFactory
+import java.io.InputStream
 import java.net.HttpURLConnection
 import java.net.URL
 import java.time.Instant
@@ -37,10 +38,15 @@ class AzureClient(private val tenantUrl: String, private val clientId: String, p
                 }
             }
 
-            responseCode to (this.errorStream ?: this.inputStream).bufferedReader().readText()
+            val stream: InputStream? = if (responseCode < 300) this.inputStream else this.errorStream
+            responseCode to stream?.bufferedReader()?.readText()
         }
 
         tjenestekallLog.info("svar fra azure ad: responseCode=$responseCode responseBody=$responseBody")
+
+        if (responseBody == null) {
+            throw RuntimeException("ukjent feil fra azure ad (responseCode=$responseCode), responseBody er null")
+        }
 
         val jsonNode = objectMapper.readTree(responseBody)
 
