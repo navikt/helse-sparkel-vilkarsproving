@@ -44,4 +44,4 @@ spec:
   - name: AZURE_TENANT_ID
     value: 62366534-1ec3-4962-8869-9b5535279d0b
   - name: SPOLE_SCOPE
-    value: api://ac17f325-33b4-4b45-bb21-b84dd87b1f9d/defaultaccess
+    value: api://ac17f325-33b4-4b45-bb21-b84dd87b1f9d/.default
