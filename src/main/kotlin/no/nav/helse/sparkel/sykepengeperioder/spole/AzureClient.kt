@@ -1,8 +1,9 @@
 package no.nav.helse.sparkel.sykepengeperioder.spole
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.github.kittinunf.fuel.httpPost
 import org.slf4j.LoggerFactory
+import java.net.HttpURLConnection
+import java.net.URL
 import java.time.Instant
 
 class AzureClient(private val tenantUrl: String, private val clientId: String, private val clientSecret: String) {
@@ -25,36 +26,36 @@ class AzureClient(private val tenantUrl: String, private val clientId: String, p
 
 
     private fun fetchToken(scope: String): Token {
-        val (_, _, result) = "$tenantUrl/oauth2/v2.0/token".httpPost(
-                listOf(
-                        "client_id" to clientId,
-                        "client_secret" to clientSecret,
-                        "scope" to scope,
-                        "grant_type" to "client_credentials"
-                )
-        ).responseString()
+        val (responseCode, responseBody) = with(URL("$tenantUrl/oauth2/v2.0/token").openConnection() as HttpURLConnection) {
+            requestMethod = "POST"
 
-        val (jsonString, error) = result
-
-        jsonString?.also { response ->
-            tjenestekallLog.info(response)
-        }?.let { response ->
-            objectMapper.readTree(response)
-        }?.also { jsonNode ->
-            if (jsonNode.has("error")) {
-                log.error("${jsonNode["error_description"].textValue()}: $jsonNode")
-                throw RuntimeException("error from the azure token endpoint: ${jsonNode["error_description"].textValue()}")
+            doOutput = true
+            outputStream.use {
+                it.bufferedWriter().apply {
+                    write("client_id=$clientId&client_secret=$clientSecret&scope=$scope&grant_type=client_credentials")
+                    flush()
+                }
             }
 
-
-            return Token(
-                    tokenType = jsonNode["token_type"].textValue(),
-                    expiresIn = jsonNode["expires_in"].longValue(),
-                    accessToken = jsonNode["access_token"].textValue()
-            )
+            responseCode to (this.errorStream ?: this.inputStream).bufferedReader().readText()
         }
 
-        throw error?.exception ?: RuntimeException("unexpected error")
+        tjenestekallLog.info("svar fra azure ad: responseCode=$responseCode responseBody=$responseBody")
+
+        val jsonNode = objectMapper.readTree(responseBody)
+
+        if (jsonNode.has("error")) {
+            log.error("${jsonNode["error_description"].textValue()}: $jsonNode")
+            throw RuntimeException("error from the azure token endpoint: ${jsonNode["error_description"].textValue()}")
+        } else if (responseCode >= 300) {
+            throw RuntimeException("unknown error (responseCode=$responseCode) from azure ad")
+        }
+
+        return Token(
+                tokenType = jsonNode["token_type"].textValue(),
+                expiresIn = jsonNode["expires_in"].longValue(),
+                accessToken = jsonNode["access_token"].textValue()
+        )
     }
 
     data class Token(val tokenType: String, val expiresIn: Long, val accessToken: String) {

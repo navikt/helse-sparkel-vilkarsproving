@@ -4,10 +4,8 @@ val slf4jVersion = "1.7.25"
 val ktorVersion = "1.2.4"
 val jacksonVersion = "2.9.8"
 val kafkaVersion = "2.3.0"
-val arrowVersion = "0.9.0"
 val prometheusVersion = "0.6.0"
 val micrometerRegistryPrometheusVersion = "1.1.5"
-val fuelVersion = "1.15.1"
 val wireMockVersion = "2.19.0"
 val mockkVersion = "1.9.3.kotlin12"
 val junitJupiterVersion = "5.4.0"
@@ -36,10 +34,6 @@ dependencies {
 
     implementation("io.ktor:ktor-metrics-micrometer:$ktorVersion")
     implementation("io.micrometer:micrometer-registry-prometheus:$micrometerRegistryPrometheusVersion")
-
-    implementation("com.github.kittinunf.fuel:fuel:$fuelVersion")
-
-    implementation("io.arrow-kt:arrow-core-data:$arrowVersion")
 
     testImplementation("io.mockk:mockk:$mockkVersion")
     testImplementation("com.github.tomakehurst:wiremock:$wireMockVersion") {
