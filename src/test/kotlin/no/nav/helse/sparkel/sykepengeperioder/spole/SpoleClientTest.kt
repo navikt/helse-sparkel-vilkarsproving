@@ -77,7 +77,7 @@ private val ok_sykepengeperioder_response = """
         {
             "fom": "2019-01-01",
             "tom": "2019-02-01",
-            "grad": "100"
+            "sykemeldingsgrad": "100"
         }   
     ]
 }

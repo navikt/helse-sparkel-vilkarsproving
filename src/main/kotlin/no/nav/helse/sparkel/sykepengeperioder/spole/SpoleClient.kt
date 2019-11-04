@@ -41,7 +41,7 @@ class SpoleClient(private val baseUrl: String, private val accesstokenScope: Str
                     Periode(
                             fom = LocalDate.parse(periodeJson["fom"].textValue()),
                             tom = LocalDate.parse(periodeJson["tom"].textValue()),
-                            grad = periodeJson["grad"].textValue()
+                            grad = periodeJson["sykemeldingsgrad"].textValue()
                     )
                 }
         )
