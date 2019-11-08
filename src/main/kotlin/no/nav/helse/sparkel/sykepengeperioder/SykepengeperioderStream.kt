@@ -53,7 +53,7 @@ fun Application.sykepengeperioderApplication(): KafkaStreams {
 
     builder.stream<String, JsonNode>(
             listOf(behovTopic), Consumed.with(Serdes.String(), JsonNodeSerde(objectMapper))
-            .withOffsetResetPolicy(Topology.AutoOffsetReset.LATEST)
+            .withOffsetResetPolicy(Topology.AutoOffsetReset.EARLIEST)
     ).peek { key, value ->
         log.info("mottok melding key=$key value=$value")
     }.filter { _, value ->
@@ -61,12 +61,12 @@ fun Application.sykepengeperioderApplication(): KafkaStreams {
     }.filterNot { _, value ->
         value.harLøsning()
     }.filter { _, value ->
-        value.has("aktørId") && value.has("tom")
+        value.has("aktørId")
     }.peek { key, value ->
         log.info("løser behov key=$key")
     }.mapValues { _, value ->
         try {
-            value.setLøsning(lagLøsning(spoleClient, value["aktørId"].textValue(), LocalDate.parse(value["tom"].textValue())))
+            value.setLøsning(lagLøsning(spoleClient, value["aktørId"].textValue(), value["tom"]?.let { LocalDate.parse(it.textValue()) } ?: LocalDate.now()))
         } catch (err: Exception) {
             log.error("feil ved henting av spole-data: ${err.message}", err)
             null
