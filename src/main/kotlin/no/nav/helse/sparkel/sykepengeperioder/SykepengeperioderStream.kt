@@ -26,6 +26,7 @@ import org.apache.kafka.streams.kstream.Consumed
 import org.apache.kafka.streams.kstream.Produced
 import java.io.File
 import java.time.Duration
+import java.time.LocalDate
 import java.util.*
 
 private const val sykepengeperioderBehov = "Sykepengehistorikk"
@@ -60,12 +61,12 @@ fun Application.sykepengeperioderApplication(): KafkaStreams {
     }.filterNot { _, value ->
         value.harLøsning()
     }.filter { _, value ->
-        value.has("aktørId")
+        value.has("aktørId") && value.has("tom")
     }.peek { key, value ->
         log.info("løser behov key=$key")
     }.mapValues { _, value ->
         try {
-            value.setLøsning(lagLøsning(spoleClient, value["aktørId"].textValue()))
+            value.setLøsning(lagLøsning(spoleClient, value["aktørId"].textValue(), LocalDate.parse(value["tom"].textValue())))
         } catch (err: Exception) {
             log.error("feil ved henting av spole-data: ${err.message}", err)
             null
@@ -93,8 +94,8 @@ private fun JsonNode.erBehov(type: String) =
 private fun JsonNode.harLøsning() =
         has("@løsning")
 
-internal fun lagLøsning(spoleClient: SpoleClient, aktørId: String): JsonNode {
-    return objectMapper.valueToTree(spoleClient.hentSykepengeperioder(aktørId))
+internal fun lagLøsning(spoleClient: SpoleClient, aktørId: String, periodeTom: LocalDate): JsonNode {
+    return objectMapper.valueToTree(spoleClient.hentSykepengeperioder(aktørId, periodeTom))
 }
 
 private fun JsonNode.setLøsning(løsning: JsonNode) =

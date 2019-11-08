@@ -2,6 +2,7 @@ package no.nav.helse.sparkel.sykepengeperioder.spole
 
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock
+import com.github.tomakehurst.wiremock.client.WireMock.*
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration
 import io.mockk.every
 import io.mockk.mockk
@@ -52,10 +53,10 @@ internal class SpoleClientTest {
 
     @Test
     fun `henter sykepengeperioder fra spole`() {
-        WireMock.stubFor(spoleRequestMapping
+        stubFor(spoleRequestMapping
                 .willReturn(WireMock.ok(ok_sykepengeperioder_response)))
 
-        val sykepengeperioder = spoleClient.hentSykepengeperioder(aktørId = aktørId)
+        val sykepengeperioder = spoleClient.hentSykepengeperioder(aktørId = aktørId, periodeTom = periodeTom)
 
         assertEquals(1, sykepengeperioder.perioder.size)
         assertEquals(LocalDate.parse("2019-01-01"), sykepengeperioder.perioder[0].fom)
@@ -65,10 +66,12 @@ internal class SpoleClientTest {
 }
 
 private val aktørId = "123456789123"
+private val periodeTom = LocalDate.of(2019, 1, 1)
 
-private val spoleRequestMapping = WireMock.get(WireMock.urlPathEqualTo("/sykepengeperioder/$aktørId"))
-        .withHeader("Authorization", WireMock.equalTo("Bearer foobar"))
-        .withHeader("Accept", WireMock.equalTo("application/json"))
+private val spoleRequestMapping = get(urlPathEqualTo("/sykepengeperioder/$aktørId"))
+        .withQueryParam("periodeTom", equalTo(periodeTom.toString()))
+        .withHeader("Authorization", equalTo("Bearer foobar"))
+        .withHeader("Accept", equalTo("application/json"))
 
 private val ok_sykepengeperioder_response = """
 {
