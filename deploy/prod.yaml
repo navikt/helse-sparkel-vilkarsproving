@@ -34,6 +34,8 @@ spec:
   vault:
     enabled: true
     paths:
+      - mountPath: /var/run/secrets/nais.io/vault
+        kvPath: /kv/prod/fss/sparkel-vilkarsproving/default
       - mountPath: /var/run/secrets/nais.io/azure
         kvPath: /azuread/data/prod/creds/sparkel-vilkarsproving
   env:
