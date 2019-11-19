@@ -1,35 +1,24 @@
-package no.nav.helse.sparkel.sykepengeperioder
+package no.nav.helse.sparkel
 
-import com.fasterxml.jackson.databind.JsonNode
-import com.fasterxml.jackson.databind.SerializationFeature
-import com.fasterxml.jackson.databind.node.ObjectNode
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import io.ktor.application.Application
-import io.ktor.application.ApplicationStarted
-import io.ktor.application.ApplicationStopping
-import io.ktor.application.log
-import io.ktor.util.KtorExperimentalAPI
-import no.nav.helse.sparkel.sykepengeperioder.serde.JsonNodeSerde
-import no.nav.helse.sparkel.sykepengeperioder.spole.AzureClient
-import no.nav.helse.sparkel.sykepengeperioder.spole.SpoleClient
-import org.apache.kafka.clients.CommonClientConfigs
-import org.apache.kafka.common.config.SaslConfigs
-import org.apache.kafka.common.config.SslConfigs
-import org.apache.kafka.common.serialization.Serdes
-import org.apache.kafka.streams.KafkaStreams
-import org.apache.kafka.streams.StreamsBuilder
-import org.apache.kafka.streams.StreamsConfig
-import org.apache.kafka.streams.Topology
-import org.apache.kafka.streams.errors.LogAndFailExceptionHandler
-import org.apache.kafka.streams.kstream.Consumed
-import org.apache.kafka.streams.kstream.Produced
-import java.io.File
-import java.time.Duration
-import java.time.LocalDate
+import com.fasterxml.jackson.databind.*
+import com.fasterxml.jackson.databind.node.*
+import com.fasterxml.jackson.datatype.jsr310.*
+import com.fasterxml.jackson.module.kotlin.*
+import io.ktor.application.*
+import io.ktor.util.*
+import no.nav.helse.sparkel.serde.*
+import no.nav.helse.sparkel.azure.*
+import org.apache.kafka.clients.*
+import org.apache.kafka.common.config.*
+import org.apache.kafka.common.serialization.*
+import org.apache.kafka.streams.*
+import org.apache.kafka.streams.errors.*
+import org.apache.kafka.streams.kstream.*
+import java.io.*
+import java.time.*
 import java.util.*
 
-private const val sykepengeperioderBehov = "Sykepengehistorikk"
+private const val vilkårsBehov = "Sykepengehistorikk"
 private const val behovTopic = "privat-helse-sykepenger-behov"
 
 private val objectMapper = jacksonObjectMapper()
@@ -44,12 +33,9 @@ fun Application.sykepengeperioderApplication(): KafkaStreams {
             clientId = environment.config.property("azure.client_id").getString(),
             clientSecret = environment.config.property("azure.client_secret").getString()
     )
-    val spoleClient = SpoleClient(
-            baseUrl = environment.config.property("spole.url").getString(),
-            accesstokenScope = environment.config.property("spole.scope").getString(),
-            azureClient = azureClient)
 
     val builder = StreamsBuilder()
+
 
     builder.stream<String, JsonNode>(
             listOf(behovTopic), Consumed.with(Serdes.String(), JsonNodeSerde(objectMapper))
@@ -57,24 +43,14 @@ fun Application.sykepengeperioderApplication(): KafkaStreams {
     ).peek { key, value ->
         log.info("mottok melding key=$key value=$value")
     }.filter { _, value ->
-        value.erBehov(sykepengeperioderBehov)
+        value.erBehov(vilkårsBehov)
     }.filterNot { _, value ->
         value.harLøsning()
     }.filter { _, value ->
         value.has("aktørId") && value.has("tom")
     }.peek { key, value ->
-        log.info("løser behov key=$key")
-    }.mapValues { _, value ->
-        try {
-            value.setLøsning(lagLøsning(spoleClient, value["aktørId"].textValue(), LocalDate.parse(value["tom"].textValue())))
-        } catch (err: Exception) {
-            log.error("feil ved henting av spole-data: ${err.message}", err)
-            null
-        }
-    }.filterNot { _, value ->
-        value == null
-    }.to(behovTopic, Produced.with(Serdes.String(), JsonNodeSerde(objectMapper)))
-
+        log.info("skal løse behov key=$key")
+    }
     return KafkaStreams(builder.build(), streamsConfig()).apply {
         addShutdownHook(this)
 
@@ -93,10 +69,6 @@ private fun JsonNode.erBehov(type: String) =
 
 private fun JsonNode.harLøsning() =
         has("@løsning")
-
-internal fun lagLøsning(spoleClient: SpoleClient, aktørId: String, periodeTom: LocalDate): JsonNode {
-    return objectMapper.valueToTree(spoleClient.hentSykepengeperioder(aktørId, periodeTom))
-}
 
 private fun JsonNode.setLøsning(løsning: JsonNode) =
         (this as ObjectNode).set("@løsning", løsning)

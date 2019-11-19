@@ -1,7 +1,7 @@
-Sparkel behov [![Actions Status](https://github.com/navikt/helse-sparkel-behov/workflows/master/badge.svg)](https://github.com/navikt/helse-sparkel-behov/actions)
+Sparkel vilkårsprøving [![Actions Status](https://github.com/navikt/helse-sparkel-vilkarsproving/workflows/master/badge.svg)](https://github.com/navikt/helse-sparkel-vilkarsproving/actions)
 =============
 
-Løser oppslag-behov for andre tjenester i sykepengesfæren.
+Løser behov for informasjon til å kunne gjøre vilkårsprøving.
 
 # Henvendelser
 
