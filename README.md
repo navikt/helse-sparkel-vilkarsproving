@@ -1,4 +1,4 @@
-Sparkel vilkårsprøving [![Actions Status](https://github.com/navikt/helse-sparkel-vilkarsproving/workflows/master/badge.svg)](https://github.com/navikt/helse-sparkel-vilkarsproving/actions)
+Sparkel for vilkårsprøving [![Actions Status](https://github.com/navikt/helse-sparkel-vilkarsproving/workflows/master/badge.svg)](https://github.com/navikt/helse-sparkel-vilkarsproving/actions)
 =============
 
 Løser behov for informasjon til å kunne gjøre vilkårsprøving.
