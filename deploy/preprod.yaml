@@ -37,7 +37,7 @@ spec:
       - mountPath: /var/run/secrets/nais.io/vault
         kvPath: /kv/preprod/fss/sparkel-vilkarsproving/default
       - mountPath: /var/run/secrets/nais.io/azure
-        kvPath: /azuread/data/preprod/creds/sparkel-vilkarsproving
+        kvPath: /azuread/data/dev/creds/sparkel-vilkarsproving
   env:
   - name: KAFKA_BOOTSTRAP_SERVERS
     value: b27apvl00045.preprod.local:8443,b27apvl00046.preprod.local:8443,b27apvl00047.preprod.local:8443
