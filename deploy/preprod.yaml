@@ -45,3 +45,9 @@ spec:
     value: b27apvl00045.preprod.local:8443,b27apvl00046.preprod.local:8443,b27apvl00047.preprod.local:8443
   - name: AZURE_TENANT_ID
     value: 966ac572-f5b7-4bbe-aa88-c76419c0f851
+  - name: STS_URL
+    value: https://sts-q1.preprod.local/SecurityTokenServiceProvider/
+  - name: EGENANSATT_URL
+    value: https://wasapp-q1.adeo.no/tpsws/EgenAnsatt_v1
+  - name: AKTORREGISTER_URL
+    value: https://app-q1.adeo.no/aktoerregister

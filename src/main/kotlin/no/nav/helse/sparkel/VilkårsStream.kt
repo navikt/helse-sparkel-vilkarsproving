@@ -6,8 +6,10 @@ import com.fasterxml.jackson.datatype.jsr310.*
 import com.fasterxml.jackson.module.kotlin.*
 import io.ktor.application.*
 import io.ktor.util.*
+import no.nav.helse.sparkel.aktør.*
 import no.nav.helse.sparkel.serde.*
-import no.nav.helse.sparkel.azure.*
+import no.nav.helse.sparkel.egenansatt.*
+import no.nav.tjeneste.pip.egen.ansatt.v1.*
 import org.apache.kafka.clients.*
 import org.apache.kafka.common.config.*
 import org.apache.kafka.common.serialization.*
@@ -18,7 +20,7 @@ import java.io.*
 import java.time.*
 import java.util.*
 
-private const val vilkårsBehov = "Sykepengehistorikk"
+private const val behovstype = "Vilkårsdata"
 private const val behovTopic = "privat-helse-sykepenger-behov"
 
 private val objectMapper = jacksonObjectMapper()
@@ -28,14 +30,13 @@ private val objectMapper = jacksonObjectMapper()
 @KtorExperimentalAPI
 fun Application.sykepengeperioderApplication(): KafkaStreams {
 
-    val azureClient = AzureClient(
-            tenantUrl = "https://login.microsoftonline.com/" + environment.config.property("azure.tenant_id").getString(),
-            clientId = environment.config.property("azure.client_id").getString(),
-            clientSecret = environment.config.property("azure.client_secret").getString()
-    )
+    val stsRest = StsRestClient(username = environment.config.property("srv.username").getString(),
+            password = environment.config.property("srv.password").getString())
+    val aktørRegister = AktørregisterClient(environment.config.property("aktør.url").getString(), stsRest)
+
+    val egenAnsattService = egenAnsattService()
 
     val builder = StreamsBuilder()
-
 
     builder.stream<String, JsonNode>(
             listOf(behovTopic), Consumed.with(Serdes.String(), JsonNodeSerde(objectMapper))
@@ -43,14 +44,22 @@ fun Application.sykepengeperioderApplication(): KafkaStreams {
     ).peek { key, value ->
         log.info("mottok melding key=$key value=$value")
     }.filter { _, value ->
-        value.erBehov(vilkårsBehov)
+        value.erBehov(behovstype)
     }.filterNot { _, value ->
         value.harLøsning()
     }.filter { _, value ->
-        value.has("aktørId") && value.has("tom")
+        value.has("aktørId")
+    }.mapValues { _, value ->
+        val aktørId = value["aktørId"].asText()
+        val fnr = aktørRegister.fnr(aktørId)
+        val erEgenAnsatt = fnr?.let { egenAnsattService.erEgenAnsatt(it) } ?: true
+        value.setLøsning(ObjectNode(JsonNodeFactory.instance, mapOf("erEgenAnsatt" to BooleanNode.valueOf(erEgenAnsatt))))
+    }.filterNot { _, value ->
+        value == null
     }.peek { key, value ->
-        log.info("skal løse behov key=$key")
-    }
+        log.info("løst behov for key=$key")
+    }.to(behovTopic, Produced.with(Serdes.String(), JsonNodeSerde(objectMapper)))
+
     return KafkaStreams(builder.build(), streamsConfig()).apply {
         addShutdownHook(this)
 
@@ -63,6 +72,12 @@ fun Application.sykepengeperioderApplication(): KafkaStreams {
         }
     }
 }
+
+private fun EgenAnsattV1.erEgenAnsatt(fnr: String) =
+        hentErEgenAnsattEllerIFamilieMedEgenAnsatt(
+                WSHentErEgenAnsattEllerIFamilieMedEgenAnsattRequest().withIdent(fnr))
+                .isEgenAnsatt
+
 
 private fun JsonNode.erBehov(type: String) =
         has("@behov") && this["@behov"].textValue() == type
@@ -83,8 +98,8 @@ private fun Application.streamsConfig() = Properties().apply {
     put(SaslConfigs.SASL_MECHANISM, "PLAIN")
     put(CommonClientConfigs.SECURITY_PROTOCOL_CONFIG, "PLAINTEXT")
 
-    environment.config.propertyOrNull("kafka.username")?.getString()?.let { username ->
-        environment.config.propertyOrNull("kafka.password")?.getString()?.let { password ->
+    environment.config.propertyOrNull("srv.username")?.getString()?.let { username ->
+        environment.config.propertyOrNull("srv.password")?.getString()?.let { password ->
             put(
                     SaslConfigs.SASL_JAAS_CONFIG,
                     "org.apache.kafka.common.security.plain.PlainLoginModule required username=\"$username\" password=\"$password\";"
@@ -121,3 +136,15 @@ private fun Application.addShutdownHook(streams: KafkaStreams) {
         streams.close(Duration.ofSeconds(10))
     }
 }
+
+@KtorExperimentalAPI
+private fun Application.egenAnsattService() =
+        createPort<EgenAnsattV1>(environment.config.property("egenAnsatt.url").getString()) {
+            port {
+                withSTS(
+                        environment.config.property("srv.username").getString(),
+                        environment.config.property("srv.password").getString(),
+                        environment.config.property("sts.url").getString()
+                )
+            }
+        }

@@ -1,10 +1,13 @@
 package no.nav.helse.sparkel
 
+import io.ktor.application.*
 import io.ktor.config.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import io.ktor.util.*
+import no.nav.helse.sparkel.egenansatt.*
 import no.nav.helse.sparkel.nais.*
+import no.nav.tjeneste.pip.egen.ansatt.v1.*
 import java.io.*
 import java.util.concurrent.*
 
@@ -16,8 +19,13 @@ fun createConfigFromEnvironment(env: Map<String, String>) =
             put("kafka.app-id", "sparkel-vilkarsproving-v1")
 
             env["KAFKA_BOOTSTRAP_SERVERS"]?.let { put("kafka.bootstrap-servers", it) }
-            put("kafka.username", "/var/run/secrets/nais.io/srv/username".readFile() ?: env.getValue("KAFKA_USERNAME"))
-            put("kafka.password", "/var/run/secrets/nais.io/srv/password".readFile() ?: env.getValue("KAFKA_PASSWORD"))
+            put("srv.username", "/var/run/secrets/nais.io/srv/username".readFile() ?: env.getValue("SRV_USERNAME"))
+            put("srv.password", "/var/run/secrets/nais.io/srv/password".readFile() ?: env.getValue("SRV_PASSWORD"))
+
+            put("sts.url", env.getValue("STS_URL"))
+            put("egenAnsatt.url", env.getValue("EGENANSATT_URL"))
+
+            put("aktør.url", env.getValue("AKTORREGISTER_URL"))
 
             env["NAV_TRUSTSTORE_PATH"]?.let { put("kafka.truststore-path", it) }
             env["NAV_TRUSTSTORE_PASSWORD"]?.let { put("kafka.truststore-password", it) }

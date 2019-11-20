@@ -45,3 +45,9 @@ spec:
     value: a01apvl00145.adeo.no:8443,a01apvl00146.adeo.no:8443,a01apvl00147.adeo.no:8443,a01apvl00148.adeo.no:8443,a01apvl00149.adeo.no:8443,a01apvl00150.adeo.no:8443
   - name: AZURE_TENANT_ID
     value: 62366534-1ec3-4962-8869-9b5535279d0b
+  - name: STS_URL
+    value: https://sts.adeo.no/SecurityTokenServiceProvider/
+  - name: EGENANSATT_URL
+    value: https://wasapp.adeo.no/tpsws/EgenAnsatt_v1
+  - name: AKTORREGISTER_URL
+    value: https://app.adeo.no/aktoerregister
