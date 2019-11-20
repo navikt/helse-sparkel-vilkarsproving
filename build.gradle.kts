@@ -8,6 +8,7 @@ val prometheusVersion = "0.6.0"
 val micrometerRegistryPrometheusVersion = "1.1.5"
 val cxfVersion = "3.3.1"
 val egenAnsattVersion = "1.2019.09.25-00.21-49b69f0625e0"
+val jaxWsVersion = "2.3.2"
 val wireMockVersion = "2.19.0"
 val mockkVersion = "1.9.3.kotlin12"
 val junitJupiterVersion = "5.5.2"
@@ -37,6 +38,7 @@ dependencies {
     implementation("io.ktor:ktor-metrics-micrometer:$ktorVersion")
     implementation("io.micrometer:micrometer-registry-prometheus:$micrometerRegistryPrometheusVersion")
 
+    implementation("com.sun.xml.ws:jaxws-ri:$jaxWsVersion")
     implementation("org.apache.cxf:cxf-rt-frontend-jaxws:$cxfVersion")
     implementation("org.apache.cxf:cxf-rt-features-logging:$cxfVersion")
     implementation("org.apache.cxf:cxf-rt-transports-http:$cxfVersion")
