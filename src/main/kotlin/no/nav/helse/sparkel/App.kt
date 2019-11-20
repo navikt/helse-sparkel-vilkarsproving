@@ -16,8 +16,8 @@ fun createConfigFromEnvironment(env: Map<String, String>) =
             put("kafka.app-id", "sparkel-vilkarsproving-v1")
 
             env["KAFKA_BOOTSTRAP_SERVERS"]?.let { put("kafka.bootstrap-servers", it) }
-            put("kafka.username", "/var/run/secrets/nais.io/vault/username".readFile() ?: env.getValue("KAFKA_USERNAME"))
-            put("kafka.password", "/var/run/secrets/nais.io/vault/password".readFile() ?: env.getValue("KAFKA_PASSWORD"))
+            put("kafka.username", "/var/run/secrets/nais.io/srv/username".readFile() ?: env.getValue("KAFKA_USERNAME"))
+            put("kafka.password", "/var/run/secrets/nais.io/srv/password".readFile() ?: env.getValue("KAFKA_PASSWORD"))
 
             env["NAV_TRUSTSTORE_PATH"]?.let { put("kafka.truststore-path", it) }
             env["NAV_TRUSTSTORE_PASSWORD"]?.let { put("kafka.truststore-password", it) }

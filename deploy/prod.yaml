@@ -34,11 +34,11 @@ spec:
   vault:
     enabled: true
     paths:
-      - mountPath: /var/run/secrets/nais.io/vault
+      - mountPath: /var/run/secrets/nais.io/envvars
         kvPath: /kv/prod/fss/sparkel-vilkarsproving/default
       - mountPath: /var/run/secrets/nais.io/azure
         kvPath: /azuread/data/prod/creds/sparkel-vilkarsproving
-      - mountPath: /var/run/secrets/nais.io/vault
+      - mountPath: /var/run/secrets/nais.io/srv
         kvPath: /serviceuser/data/prod/srvsparkelvilkar
   env:
   - name: KAFKA_BOOTSTRAP_SERVERS
