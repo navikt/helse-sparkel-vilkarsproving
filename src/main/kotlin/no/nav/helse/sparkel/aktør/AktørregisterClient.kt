@@ -5,7 +5,7 @@ import com.fasterxml.jackson.module.kotlin.*
 import java.net.*
 import java.net.http.*
 
-class AktørregisterClient(val baseUrl: String = "", val stsRestClient: StsRestClient) {
+class AktørregisterClient(private val baseUrl: String, private val sts: StsRestClient) {
 
     val objectMapper = jacksonObjectMapper()
     val client = HttpClient.newHttpClient()
@@ -18,7 +18,7 @@ class AktørregisterClient(val baseUrl: String = "", val stsRestClient: StsRestC
                         .header("Nav-Call-Id", "anything") //todo
                         .header("Nav-Consumer-Id", "sparkel-vilkarsproving")
                         .header("Nav-Personidenter", aktørId)
-                        .header("Authorization", "Bearer ${stsRestClient.accessToken()}")
+                        .header("Authorization", "Bearer ${sts.accessToken()}")
                         .build(), HttpResponse.BodyHandlers.ofString())
         if (aktørregResponse.statusCode() != 200) {
             throw RuntimeException("Feil ved henting av identer. Får statuskode ${aktørregResponse.statusCode()}")

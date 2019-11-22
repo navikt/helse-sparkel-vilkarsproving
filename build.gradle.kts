@@ -12,6 +12,7 @@ val jaxWsVersion = "2.3.2"
 val wireMockVersion = "2.19.0"
 val mockkVersion = "1.9.3.kotlin12"
 val junitJupiterVersion = "5.5.2"
+val kafkaContainerVersion = "1.12.3"
 val mainClass = "no.nav.helse.sparkel.AppKt"
 
 plugins {
@@ -53,6 +54,8 @@ dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter-api:$junitJupiterVersion")
     testImplementation("org.junit.jupiter:junit-jupiter-params:$junitJupiterVersion")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitJupiterVersion")
+
+    testImplementation("org.testcontainers:kafka:$kafkaContainerVersion")
 }
 
 repositories {
