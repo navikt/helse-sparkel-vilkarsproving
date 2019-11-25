@@ -55,13 +55,15 @@ dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter-params:$junitJupiterVersion")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitJupiterVersion")
 
-    testImplementation("org.testcontainers:kafka:$kafkaContainerVersion")
+    testImplementation("no.nav:kafka-embedded-env:2.2.3")
+    testImplementation("org.awaitility:awaitility:3.1.6")
 }
 
 repositories {
     jcenter()
     mavenCentral()
     maven("https://dl.bintray.com/kotlin/ktor")
+    maven("http://packages.confluent.io/maven/")
 }
 
 java {

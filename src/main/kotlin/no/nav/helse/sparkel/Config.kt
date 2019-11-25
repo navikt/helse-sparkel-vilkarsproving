@@ -13,19 +13,24 @@ fun readServiceUserCredentials() = ServiceUser(
 fun setUpEnvironment() =
         Environment(
                 kafkaBootstrapServers = System.getenv("KAFKA_BOOTSTRAP_SERVERS") ?: error("Mangler env var KAFKA_BOOTSTRAP_SERVERS"),
-                kafkaAppId = "sparkel-vilkarsproving",
                 stsSoapBaseUrl = System.getenv("STS_URL") ?: error("Mangler env var STS_URL"),
                 aktørregisterUrl = System.getenv("AKTORREGISTER_URL") ?: error("Mangler env var AKTORREGISTER_URL"),
-                egenAnsattUrl = System.getenv("EGENANSATT_URL") ?: error("Mangler env var EGENANSATT_URL")
+                egenAnsattUrl = System.getenv("EGENANSATT_URL") ?: error("Mangler env var EGENANSATT_URL"),
+                truststorePath = System.getenv("NAV_TRUSTSTORE_PATH") ?: error("Mangler env var NAV_TRUSTSTORE_PATH"),
+                truststorePassword = System.getenv("NAV_TRUSTSTORE_PASSWORD") ?: error("Mangler env var NAV_TRUSTSTORE_PASSWORD"),
+                serviceUser = readServiceUserCredentials()
         )
 
 data class Environment(
         val kafkaBootstrapServers: String,
-        val kafkaAppId: String,
+        val kafkaAppId: String = "sparkel-vilkarsproving",
         val spleisBehovtopic: String = "privat-helse-sykepenger-behov",
         val stsSoapBaseUrl: String,
         val aktørregisterUrl: String,
-        val egenAnsattUrl: String
+        val egenAnsattUrl: String,
+        val truststorePath: String,
+        val truststorePassword: String,
+        val serviceUser: ServiceUser
 )
 
 data class ServiceUser(

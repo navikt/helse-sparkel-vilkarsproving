@@ -9,50 +9,41 @@ import io.ktor.routing.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import io.micrometer.prometheus.*
-import kotlinx.coroutines.*
 import no.nav.helse.sparkel.aktør.*
+import no.nav.helse.sparkel.egenansatt.egenAnsattService
 import org.slf4j.*
 import java.util.concurrent.*
 
-private val meterRegistry = PrometheusMeterRegistry(PrometheusConfig.DEFAULT)
-private val objectMapper = jacksonObjectMapper()
+val meterRegistry = PrometheusMeterRegistry(PrometheusConfig.DEFAULT)
+val objectMapper: ObjectMapper = jacksonObjectMapper()
         .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
         .registerModule(JavaTimeModule())
-private val log = LoggerFactory.getLogger("sparkel-vilkarsproving")
+val log: Logger = LoggerFactory.getLogger("sparkel-vilkarsproving")
 
-fun main() = runBlocking {
-    val serviceUser = readServiceUserCredentials()
+fun main() {
     val environment = setUpEnvironment()
 
-    launchApplication(environment, serviceUser)
+    launchApplication(environment)
 }
 
-fun launchApplication(environment: Environment, serviceUser: ServiceUser) {
-    val applicationContext = Executors.newFixedThreadPool(4).asCoroutineDispatcher()
-    val exceptionHandler = CoroutineExceptionHandler { context, ex ->
-        context.cancel(CancellationException("Feil i lytter", ex))
-    }
+fun launchApplication(environment: Environment) {
+    val server = embeddedServer(Netty, 8080) {
+        install(MicrometerMetrics) {
+            registry = meterRegistry
+        }
 
-    runBlocking(exceptionHandler + applicationContext) {
-        val server = embeddedServer(Netty, 8080) {
-            install(MicrometerMetrics) {
-                registry = meterRegistry
-            }
+        routing {
+            registerHealthApi(liveness = { true }, readiness = { true }, meterRegistry = meterRegistry)
+        }
+    }.start(wait = false)
 
-            routing {
-                registerHealthApi(liveness = { true }, readiness = { true }, meterRegistry = meterRegistry)
-            }
-        }.start(wait = false)
+    val stsRest = StsRestClient(user = environment.serviceUser)
+    val aktørregister = AktørregisterClient(environment.aktørregisterUrl, stsRest)
+    val egenAnsattService = egenAnsattService(environment)
 
-        val stsRest = StsRestClient(user = serviceUser)
-        val aktørregister = AktørregisterClient(environment.aktørregisterUrl, stsRest)
-        val behovLøser = BehovLøser(aktørregister, environment.stsSoapBaseUrl, environment.egenAnsattUrl, serviceUser)
+    startStream(aktørRegisterClient = aktørregister, egenAnsattService = egenAnsattService, environment = environment)
 
-        Runtime.getRuntime().addShutdownHook(Thread {
-            server.stop(10, 10, TimeUnit.SECONDS)
-            applicationContext.close()
-        })
-    }
+    Runtime.getRuntime().addShutdownHook(Thread {
+        server.stop(10, 10, TimeUnit.SECONDS)
+    })
 }
-
-

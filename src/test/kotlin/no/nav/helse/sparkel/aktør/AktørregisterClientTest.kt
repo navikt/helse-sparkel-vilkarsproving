@@ -8,7 +8,7 @@ import io.mockk.*
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.*
 
-class AktørregisterClientTest{
+class AktørregisterClientTest {
     val stsMock = mockk<StsRestClient> {
         every { accessToken() } returns "whatever"
     }
