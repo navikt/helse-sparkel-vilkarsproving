@@ -12,6 +12,7 @@ val jaxWsVersion = "2.3.2"
 val wireMockVersion = "2.19.0"
 val mockkVersion = "1.9.3.kotlin12"
 val junitJupiterVersion = "5.5.2"
+val kafkaContainerVersion = "1.12.3"
 val mainClass = "no.nav.helse.sparkel.AppKt"
 
 plugins {
@@ -53,12 +54,16 @@ dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter-api:$junitJupiterVersion")
     testImplementation("org.junit.jupiter:junit-jupiter-params:$junitJupiterVersion")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitJupiterVersion")
+
+    testImplementation("no.nav:kafka-embedded-env:2.2.3")
+    testImplementation("org.awaitility:awaitility:3.1.6")
 }
 
 repositories {
     jcenter()
     mavenCentral()
     maven("https://dl.bintray.com/kotlin/ktor")
+    maven("http://packages.confluent.io/maven/")
 }
 
 java {
