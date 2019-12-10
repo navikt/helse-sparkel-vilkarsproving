@@ -137,7 +137,7 @@ class ComponentTest {
 
         every { aktørRegisterClient.fnr(any()) } returns "12345678910"
 
-        val melding = """{"@behov": "Vilkårsdata", "aktørId": "1234"}"""
+        val melding = """{"@behov": ["Vilkårsdata"], "aktørId": "1234"}"""
         synchronousSendKafkaMessage(topic, "", melding)
 
         await()
