@@ -9,7 +9,6 @@ import io.ktor.routing.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import io.micrometer.prometheus.*
-import no.nav.helse.sparkel.aktør.*
 import no.nav.helse.sparkel.egenansatt.egenAnsattService
 import org.slf4j.*
 import java.util.concurrent.*
@@ -37,11 +36,9 @@ fun launchApplication(environment: Environment) {
         }
     }.start(wait = false)
 
-    val stsRest = StsRestClient(user = environment.serviceUser)
-    val aktørregister = AktørregisterClient(environment.aktørregisterUrl, stsRest)
     val egenAnsattService = egenAnsattService(environment)
 
-    startStream(aktørRegisterClient = aktørregister, egenAnsattService = egenAnsattService, environment = environment)
+    startStream(egenAnsattService = egenAnsattService, environment = environment)
 
     Runtime.getRuntime().addShutdownHook(Thread {
         server.stop(10, 10, TimeUnit.SECONDS)

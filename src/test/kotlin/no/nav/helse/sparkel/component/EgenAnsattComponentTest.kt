@@ -4,8 +4,10 @@ import com.fasterxml.jackson.databind.JsonNode
 import io.mockk.every
 import io.mockk.mockk
 import no.nav.common.KafkaEnvironment
-import no.nav.helse.sparkel.*
-import no.nav.helse.sparkel.aktør.AktørregisterClient
+import no.nav.helse.sparkel.Environment
+import no.nav.helse.sparkel.JacksonKafkaDeserializer
+import no.nav.helse.sparkel.ServiceUser
+import no.nav.helse.sparkel.startStream
 import no.nav.tjeneste.pip.egen.ansatt.v1.EgenAnsattV1
 import no.nav.tjeneste.pip.egen.ansatt.v1.WSHentErEgenAnsattEllerIFamilieMedEgenAnsattResponse
 import org.apache.kafka.clients.CommonClientConfigs.BOOTSTRAP_SERVERS_CONFIG
@@ -17,8 +19,6 @@ import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerConfig.*
 import org.apache.kafka.clients.producer.ProducerRecord
-import org.apache.kafka.clients.producer.RecordMetadata
-import org.apache.kafka.common.TopicPartition
 import org.apache.kafka.common.config.SaslConfigs.SASL_MECHANISM
 import org.apache.kafka.common.serialization.StringDeserializer
 import org.apache.kafka.common.serialization.StringSerializer
@@ -27,12 +27,16 @@ import org.apache.kafka.streams.StreamsConfig
 import org.apache.kafka.streams.Topology
 import org.apache.kafka.streams.errors.LogAndFailExceptionHandler
 import org.awaitility.Awaitility.await
-import org.junit.jupiter.api.*
+import org.junit.jupiter.api.AfterAll
+import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.Test
 import java.time.Duration.ofMillis
 import java.util.*
 import java.util.concurrent.TimeUnit
 
-class ComponentTest {
+class EgenAnsattComponentTest {
 
     companion object {
 
@@ -49,7 +53,6 @@ class ComponentTest {
         private lateinit var kafkaConsumer: KafkaConsumer<String, JsonNode>
         private lateinit var kafkaStream: KafkaStreams
 
-        val aktørRegisterClient = mockk<AktørregisterClient>()
         val egenAnsattService = mockk<EgenAnsattV1>()
 
         private val embeddedKafkaEnvironment = KafkaEnvironment(
@@ -103,7 +106,6 @@ class ComponentTest {
             )
 
             kafkaStream = startStream(
-                    aktørRegisterClient = aktørRegisterClient,
                     egenAnsattService = egenAnsattService,
                     environment = environment,
                     streamsConfig = streamsConfig(environment),
@@ -130,50 +132,52 @@ class ComponentTest {
     }
 
     @Test
-    fun `tester at vi løser et behov? 🤷‍`() {
+    fun `tester at vi løser et behov hvor bruker er egen ansatt‍`() {
         every { egenAnsattService.hentErEgenAnsattEllerIFamilieMedEgenAnsatt(any()) } returns WSHentErEgenAnsattEllerIFamilieMedEgenAnsattResponse().apply {
             isEgenAnsatt = true
         }
 
-        every { aktørRegisterClient.fnr(any()) } returns "12345678910"
-
-        val melding = """{"@behov": ["Vilkårsdata"], "aktørId": "1234"}"""
-        synchronousSendKafkaMessage(topic, "", melding)
+        val melding = """{"@behov": ["EgenAnsatt"], "@id":"id2", "fødselsnummer": "10101011111"}"""
+        sendKafkaMessage(topic, "", melding)
 
         await()
-            .atMost(10, TimeUnit.SECONDS)
-            .until {
-                kafkaConsumer.poll(ofMillis(100))
-                    .any { it.value().hasNonNull("@løsning") }
-            }
+                .atMost(10, TimeUnit.SECONDS)
+                .untilAsserted {
+                    val records = kafkaConsumer.poll(ofMillis(100))
+                            .map { it.value() }
+                            .filter { it.path("@løsning").hasNonNull("EgenAnsatt") }
+                            .filter { it["@id"].textValue() == "id2" }
+                            .map { it.path("@løsning")["EgenAnsatt"].booleanValue() }
+
+                    assertEquals(1, records.size)
+                    assertTrue(records.first())
+                }
+    }
+
+    @Test
+    fun `tester at vi løser et behov hvor bruker ikke er egen ansatt‍`() {
+        every { egenAnsattService.hentErEgenAnsattEllerIFamilieMedEgenAnsatt(any()) } returns WSHentErEgenAnsattEllerIFamilieMedEgenAnsattResponse().apply {
+            isEgenAnsatt = false
+        }
+
+        val melding = """{"@behov": ["EgenAnsatt"], "@id":"id1", "fødselsnummer": "10101011111"}"""
+        sendKafkaMessage(topic, "", melding)
+
+        await()
+                .atMost(10, TimeUnit.SECONDS)
+                .untilAsserted {
+                    val records = kafkaConsumer.poll(ofMillis(100))
+                                    .map { it.value() }
+                                    .filter { it.path("@løsning").hasNonNull("EgenAnsatt") }
+                                    .filter { it["@id"].textValue() == "id1" }
+                                    .map { it.path("@løsning")["EgenAnsatt"].booleanValue() }
+
+                    assertEquals(1, records.size)
+                    assertFalse(records.first())
+                }
     }
 
     private fun sendKafkaMessage(topic: String, key: String, message: String) =
             kafkaProducer.send(ProducerRecord(topic, key, message))
-
-    /**
-     * Trick Kafka into behaving synchronously by sending the message, and then confirming that it is read by the consumer group
-     */
-    private fun synchronousSendKafkaMessage(topic: String, key: String, message: String) {
-        val metadata = sendKafkaMessage(topic, key, message)
-        kafkaProducer.flush()
-        metadata.get().assertMessageIsConsumed()
-    }
-
-    /**
-     * Check that the consumers has received this message, by comparing the position of the message with the reported last read message of the consumer group
-     */
-    private fun RecordMetadata.assertMessageIsConsumed() {
-        await()
-                .atMost(10, TimeUnit.SECONDS)
-                .untilAsserted {
-                    val offsetAndMetadataMap = adminClient.listConsumerGroupOffsets(kafkaApplicationId).partitionsToOffsetAndMetadata().get()
-                    val topicPartition = TopicPartition(topic(), partition())
-                    val currentPositionOfSentMessage = offset()
-                    val currentConsumerGroupPosition = offsetAndMetadataMap[topicPartition]?.offset()?.minus(1)
-                            ?: Assertions.fail() // This offset represents next position to read from, so we subtract 1 to get the last read offset
-                    Assertions.assertEquals(currentConsumerGroupPosition, currentPositionOfSentMessage)
-                }
-    }
 
 }

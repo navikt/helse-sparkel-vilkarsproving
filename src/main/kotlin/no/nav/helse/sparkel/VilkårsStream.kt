@@ -2,7 +2,6 @@ package no.nav.helse.sparkel
 
 import com.fasterxml.jackson.databind.*
 import com.fasterxml.jackson.databind.node.*
-import no.nav.helse.sparkel.aktør.*
 import no.nav.helse.sparkel.serde.*
 import no.nav.tjeneste.pip.egen.ansatt.v1.*
 import org.apache.kafka.clients.*
@@ -15,11 +14,10 @@ import java.io.*
 import java.time.*
 import java.util.*
 
-private const val behovstype = "Vilkårsdata"
+private const val behovstype = "EgenAnsatt"
 private const val behovTopic = "privat-helse-sykepenger-behov"
 
 fun startStream(
-    aktørRegisterClient: AktørregisterClient,
     egenAnsattService: EgenAnsattV1,
     environment: Environment,
     streamsConfig: Properties = streamsConfig(environment),
@@ -37,15 +35,14 @@ fun startStream(
     }.filterNot { _, value ->
         value.harLøsning()
     }.filter { _, value ->
-        value.hasNonNull("aktørId")
+        value.hasNonNull("fødselsnummer")
     }.mapValues { _, value ->
-        val aktørId = value["aktørId"].asText()
-        val fnr = aktørRegisterClient.fnr(aktørId) ?: error("Fant ikke FNR for aktørId $aktørId")
+        val fnr = value["fødselsnummer"].textValue()
         val erEgenAnsatt = egenAnsattService.erEgenAnsatt(fnr)
         value.setLøsning(
             ObjectNode(
                 JsonNodeFactory.instance,
-                mapOf("erEgenAnsatt" to BooleanNode.valueOf(erEgenAnsatt))
+                mapOf(behovstype to BooleanNode.valueOf(erEgenAnsatt))
             )
         )
     }.peek { key, _ ->
@@ -60,10 +57,8 @@ fun startStream(
 }
 
 private fun EgenAnsattV1.erEgenAnsatt(fnr: String) =
-    hentErEgenAnsattEllerIFamilieMedEgenAnsatt(
-        WSHentErEgenAnsattEllerIFamilieMedEgenAnsattRequest().withIdent(fnr)
-    )
-        .isEgenAnsatt
+    hentErEgenAnsattEllerIFamilieMedEgenAnsatt(WSHentErEgenAnsattEllerIFamilieMedEgenAnsattRequest().withIdent(fnr))
+            .isEgenAnsatt
 
 private fun JsonNode.skalOppfyllesAvOss(type: String)  =
         this["@behov"]?.let {
