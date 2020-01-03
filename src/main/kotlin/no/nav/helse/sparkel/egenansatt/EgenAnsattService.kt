@@ -11,7 +11,7 @@ object EgenAnsattFactory {
 
     private val ServiceClass = EgenAnsattV1::class.java
     private val Wsdl = "wsdl/no/nav/tjeneste/pip/EgenAnsatt/v1/Binding.wsdl"
-    private val Namespace = "http://nav.no/tjeneste/pip/egenAnsatt/v1/"
+    private val Namespace = "http://nav.no/tjeneste/pip/egenAnsatt/v1/Binding"
     private val ServiceName = QName(Namespace, "EgenAnsatt_v1")
     private val EndpointName = QName(Namespace, "EgenAnsatt_v1Port")
 
