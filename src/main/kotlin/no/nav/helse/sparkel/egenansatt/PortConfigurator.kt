@@ -4,6 +4,7 @@ import org.apache.cxf.Bus
 import org.apache.cxf.binding.soap.Soap12
 import org.apache.cxf.binding.soap.SoapMessage
 import org.apache.cxf.endpoint.Client
+import org.apache.cxf.ext.logging.LoggingFeature
 import org.apache.cxf.frontend.ClientProxy
 import org.apache.cxf.jaxws.JaxWsProxyFactoryBean
 import org.apache.cxf.transport.http.HTTPConduit
@@ -46,6 +47,7 @@ inline fun <reified T> createPort(
     (JaxWsProxyFactoryBean().apply {
         address = endpoint
         serviceClass = T::class.java
+        features.add(LoggingFeature())
         configurator.proxyConfigurator(this)
     }.create() as T).apply {
         configurator.portConfigurator(this)
