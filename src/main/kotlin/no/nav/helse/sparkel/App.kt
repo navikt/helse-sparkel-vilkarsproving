@@ -9,7 +9,8 @@ import io.ktor.routing.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import io.micrometer.prometheus.*
-import no.nav.helse.sparkel.egenansatt.egenAnsattService
+import no.nav.helse.sparkel.egenansatt.EgenAnsattFactory
+import org.apache.cxf.ext.logging.LoggingFeature
 import org.slf4j.*
 import java.util.concurrent.*
 
@@ -36,7 +37,12 @@ fun launchApplication(environment: Environment) {
         }
     }.start(wait = false)
 
-    val egenAnsattService = egenAnsattService(environment)
+    val stsClientWs = stsClient(environment.stsSoapBaseUrl,
+            environment.serviceUser.username to environment.serviceUser.password)
+
+    val egenAnsattService = EgenAnsattFactory.create(environment.egenAnsattUrl, listOf(LoggingFeature())).apply {
+        stsClientWs.configureFor(this)
+    }
 
     startStream(egenAnsattService = egenAnsattService, environment = environment)
 
