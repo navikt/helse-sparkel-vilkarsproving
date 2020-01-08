@@ -4,10 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode
 import io.mockk.every
 import io.mockk.mockk
 import no.nav.common.KafkaEnvironment
-import no.nav.helse.sparkel.Environment
-import no.nav.helse.sparkel.JacksonKafkaDeserializer
-import no.nav.helse.sparkel.ServiceUser
-import no.nav.helse.sparkel.startStream
+import no.nav.helse.sparkel.*
 import no.nav.tjeneste.pip.egen.ansatt.v1.EgenAnsattV1
 import no.nav.tjeneste.pip.egen.ansatt.v1.WSHentErEgenAnsattEllerIFamilieMedEgenAnsattResponse
 import org.apache.kafka.clients.CommonClientConfigs.BOOTSTRAP_SERVERS_CONFIG
@@ -109,7 +106,8 @@ class EgenAnsattComponentTest {
                     egenAnsattService = egenAnsattService,
                     environment = environment,
                     streamsConfig = streamsConfig(environment),
-                    offsetResetPolicy = Topology.AutoOffsetReset.EARLIEST
+                    offsetResetPolicy = Topology.AutoOffsetReset.EARLIEST,
+                    liveness = Liveness()
             )
         }
 

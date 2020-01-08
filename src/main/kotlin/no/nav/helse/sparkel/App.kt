@@ -27,13 +27,14 @@ fun main() {
 }
 
 fun launchApplication(environment: Environment) {
+    val liveness = Liveness()
     val server = embeddedServer(Netty, 8080) {
         install(MicrometerMetrics) {
             registry = meterRegistry
         }
 
         routing {
-            registerHealthApi(liveness = { true }, readiness = { true }, meterRegistry = meterRegistry)
+            registerHealthApi(liveness = liveness::isAlive, readiness = { true }, meterRegistry = meterRegistry)
         }
     }.start(wait = false)
 
@@ -44,9 +45,13 @@ fun launchApplication(environment: Environment) {
         stsClientWs.configureFor(this)
     }
 
-    startStream(egenAnsattService = egenAnsattService, environment = environment)
+    startStream(egenAnsattService = egenAnsattService, environment = environment, liveness = liveness)
 
     Runtime.getRuntime().addShutdownHook(Thread {
         server.stop(10, 10, TimeUnit.SECONDS)
     })
+}
+
+class Liveness{
+    var isAlive = true
 }

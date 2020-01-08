@@ -18,15 +18,16 @@ private const val behovstype = "EgenAnsatt"
 private const val behovTopic = "privat-helse-sykepenger-behov"
 
 fun startStream(
-    egenAnsattService: EgenAnsattV1,
-    environment: Environment,
-    streamsConfig: Properties = streamsConfig(environment),
-    offsetResetPolicy: Topology.AutoOffsetReset = Topology.AutoOffsetReset.LATEST
+        egenAnsattService: EgenAnsattV1,
+        environment: Environment,
+        streamsConfig: Properties = streamsConfig(environment),
+        offsetResetPolicy: Topology.AutoOffsetReset = Topology.AutoOffsetReset.LATEST,
+        liveness: Liveness
 ): KafkaStreams {
     val builder = StreamsBuilder()
 
     builder.stream<String, JsonNode>(
-        listOf(behovTopic), Consumed.with(Serdes.String(), JsonNodeSerde(objectMapper))
+            listOf(behovTopic), Consumed.with(Serdes.String(), JsonNodeSerde(objectMapper))
             .withOffsetResetPolicy(offsetResetPolicy)
     ).peek { key, value ->
         log.info("mottok melding key=$key value=$value")
@@ -40,27 +41,32 @@ fun startStream(
         val fnr = value["fødselsnummer"].textValue()
         val erEgenAnsatt = egenAnsattService.erEgenAnsatt(fnr)
         value.setLøsning(
-            ObjectNode(
-                JsonNodeFactory.instance,
-                mapOf(behovstype to BooleanNode.valueOf(erEgenAnsatt))
-            )
+                ObjectNode(
+                        JsonNodeFactory.instance,
+                        mapOf(behovstype to BooleanNode.valueOf(erEgenAnsatt))
+                )
         )
     }.peek { key, _ ->
         log.info("løst behov for key=$key")
     }.to(behovTopic, Produced.with(Serdes.String(), JsonNodeSerde(objectMapper)))
 
     return KafkaStreams(builder.build(), streamsConfig).apply {
+        setStateListener { newState, _ ->
+            if (newState == KafkaStreams.State.ERROR || newState == KafkaStreams.State.NOT_RUNNING) {
+                liveness.isAlive = false
+                close(Duration.ofSeconds(5))
+            }
+        }
         addShutdownHook()
-
         start()
     }
 }
 
 private fun EgenAnsattV1.erEgenAnsatt(fnr: String) =
-    hentErEgenAnsattEllerIFamilieMedEgenAnsatt(WSHentErEgenAnsattEllerIFamilieMedEgenAnsattRequest().withIdent(fnr))
-            .isEgenAnsatt
+        hentErEgenAnsattEllerIFamilieMedEgenAnsatt(WSHentErEgenAnsattEllerIFamilieMedEgenAnsattRequest().withIdent(fnr))
+                .isEgenAnsatt
 
-private fun JsonNode.skalOppfyllesAvOss(type: String)  =
+private fun JsonNode.skalOppfyllesAvOss(type: String) =
         this["@behov"]?.let {
             if (it.isArray) {
                 it.map { b -> b.asText() }.any { t -> t == type }
@@ -68,10 +74,10 @@ private fun JsonNode.skalOppfyllesAvOss(type: String)  =
         } ?: false
 
 private fun JsonNode.harLøsning() =
-    hasNonNull("@løsning")
+        hasNonNull("@løsning")
 
 private fun JsonNode.setLøsning(løsning: JsonNode) =
-    (this as ObjectNode).set("@løsning", løsning)
+        (this as ObjectNode).set("@løsning", løsning)
 
 private fun streamsConfig(environment: Environment) = Properties().apply {
     put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, environment.kafkaBootstrapServers)
@@ -83,8 +89,8 @@ private fun streamsConfig(environment: Environment) = Properties().apply {
     put(CommonClientConfigs.SECURITY_PROTOCOL_CONFIG, "PLAINTEXT")
 
     put(
-        SaslConfigs.SASL_JAAS_CONFIG,
-        "org.apache.kafka.common.security.plain.PlainLoginModule required username=\"${environment.serviceUser.username}\" password=\"${environment.serviceUser.password}\";"
+            SaslConfigs.SASL_JAAS_CONFIG,
+            "org.apache.kafka.common.security.plain.PlainLoginModule required username=\"${environment.serviceUser.username}\" password=\"${environment.serviceUser.password}\";"
     )
 
     try {
