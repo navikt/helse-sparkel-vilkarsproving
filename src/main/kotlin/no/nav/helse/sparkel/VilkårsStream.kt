@@ -1,5 +1,6 @@
 package no.nav.helse.sparkel
 
+import com.ctc.wstx.exc.WstxEOFException
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.node.BooleanNode
 import com.fasterxml.jackson.databind.node.JsonNodeFactory
@@ -20,6 +21,7 @@ import org.apache.kafka.streams.errors.LogAndFailExceptionHandler
 import org.apache.kafka.streams.kstream.Consumed
 import org.apache.kafka.streams.kstream.Produced
 import java.io.File
+import java.io.IOException
 import java.time.Duration
 import java.util.Properties
 
@@ -46,7 +48,7 @@ fun startStream(
         }
         .mapValues { _, value ->
             val fnr = value["fødselsnummer"].textValue()
-            val erEgenAnsatt = egenAnsattService.erEgenAnsatt(fnr)
+            val erEgenAnsatt = egenAnsattService.erEgenAnsattRetry(fnr)
             value.setLøsning(
                 ObjectNode(
                     JsonNodeFactory.instance,
@@ -63,9 +65,27 @@ fun startStream(
     }
 }
 
-private fun EgenAnsattV1.erEgenAnsatt(fnr: String) =
-    hentErEgenAnsattEllerIFamilieMedEgenAnsatt(WSHentErEgenAnsattEllerIFamilieMedEgenAnsattRequest().withIdent(fnr))
-        .isEgenAnsatt
+private fun EgenAnsattV1.erEgenAnsattRetry(fnr: String): Boolean {
+    val retries = arrayOf(100L, 500L, 5000L, 30000L)
+    for (retryDelay in retries) {
+        try {
+            return erEgenAnsatt(fnr)
+        } catch (e: Exception) {
+            if (e is WstxEOFException || e is IOException) {
+                log.warn("Fikk en midlertidig feil, prøver igjen om $retryDelay ms", e)
+                Thread.sleep(retryDelay)
+            } else {
+                throw e
+            }
+        }
+    }
+    return erEgenAnsatt(fnr)
+}
+
+private fun EgenAnsattV1.erEgenAnsatt(fnr: String): Boolean = hentErEgenAnsattEllerIFamilieMedEgenAnsatt(
+    WSHentErEgenAnsattEllerIFamilieMedEgenAnsattRequest().withIdent(fnr)
+).isEgenAnsatt
+
 
 private fun JsonNode.skalOppfyllesAvOss(type: String) = this["@behov"].map(JsonNode::asText).any { it == type }
 private fun JsonNode.harLøsning() = hasNonNull("@løsning")
