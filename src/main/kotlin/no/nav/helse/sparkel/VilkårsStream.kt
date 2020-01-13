@@ -58,13 +58,7 @@ fun startStream(
         .to(behovTopic, Produced.with(Serdes.String(), JsonNodeSerde(objectMapper)))
 
     return KafkaStreams(builder.build(), streamsConfig).apply {
-        setStateListener { newState, _ ->
-            if (newState == KafkaStreams.State.ERROR || newState == KafkaStreams.State.NOT_RUNNING) {
-                liveness.isAlive = false
-                close(Duration.ofSeconds(5))
-            }
-        }
-        addShutdownHook()
+        addShutdownHook(liveness)
         start()
     }
 }
@@ -101,7 +95,7 @@ private fun streamsConfig(environment: Environment) = Properties().apply {
     }
 }
 
-private fun KafkaStreams.addShutdownHook() {
+private fun KafkaStreams.addShutdownHook(liveness: Liveness) {
     setStateListener { newState, oldState ->
         log.info("From state={} to state={}", oldState, newState)
 
@@ -109,6 +103,9 @@ private fun KafkaStreams.addShutdownHook() {
             // if the stream has died there is no reason to keep spinning
             log.warn("No reason to keep living, closing stream")
             close(Duration.ofSeconds(10))
+        }
+        if (newState in arrayOf(KafkaStreams.State.ERROR, KafkaStreams.State.NOT_RUNNING)) {
+            liveness.isAlive = false
         }
     }
     setUncaughtExceptionHandler { _, ex ->
