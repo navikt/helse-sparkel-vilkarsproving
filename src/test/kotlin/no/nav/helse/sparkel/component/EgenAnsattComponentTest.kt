@@ -41,7 +41,7 @@ class EgenAnsattComponentTest {
         private const val password = "kafkaclient"
         private const val kafkaApplicationId = "sparkel-vilkarsproving"
 
-        private val topic = "privat-helse-sykepenger-behov"
+        private val topic = "privat-helse-sykepenger-rapid-v1"
         private val topics = listOf(topic)
         private val topicInfos = topics.map { KafkaEnvironment.TopicInfo(it, partitions = 1) }
 

@@ -26,7 +26,7 @@ import java.time.Duration
 import java.util.Properties
 
 private const val behovstype = "EgenAnsatt"
-private const val behovTopic = "privat-helse-sykepenger-behov"
+private const val rapidTopic = "privat-helse-sykepenger-rapid-v1"
 
 fun startStream(
     egenAnsattService: EgenAnsattV1,
@@ -38,7 +38,7 @@ fun startStream(
     val builder = StreamsBuilder()
 
     builder.stream<String, JsonNode>(
-        listOf(behovTopic), Consumed.with(Serdes.String(), JsonNodeSerde(objectMapper))
+        listOf(rapidTopic), Consumed.with(Serdes.String(), JsonNodeSerde(objectMapper))
             .withOffsetResetPolicy(offsetResetPolicy)
     )
         .filter { _, value -> value.hasNonNull("@behov") && value.skalOppfyllesAvOss(behovstype) }
@@ -56,7 +56,7 @@ fun startStream(
             )
         }
         .peek { key, _ -> log.info("løst behov for key=$key") }
-        .to(behovTopic, Produced.with(Serdes.String(), JsonNodeSerde(objectMapper)))
+        .to(rapidTopic, Produced.with(Serdes.String(), JsonNodeSerde(objectMapper)))
 
     return KafkaStreams(builder.build(), streamsConfig).apply {
         addShutdownHook(liveness)

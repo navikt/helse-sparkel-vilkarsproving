@@ -24,7 +24,7 @@ fun setUpEnvironment() =
 data class Environment(
         val kafkaBootstrapServers: String,
         val kafkaAppId: String = "sparkel-vilkarsproving",
-        val spleisBehovtopic: String = "privat-helse-sykepenger-behov",
+        val spleisRapidtopic: String = "privat-helse-sykepenger-rapid-v1",
         val stsSoapBaseUrl: String,
         val aktørregisterUrl: String,
         val egenAnsattUrl: String,
