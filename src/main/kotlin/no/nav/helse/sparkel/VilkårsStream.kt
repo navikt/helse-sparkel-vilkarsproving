@@ -41,6 +41,7 @@ fun startStream(
         listOf(rapidTopic), Consumed.with(Serdes.String(), JsonNodeSerde(objectMapper))
             .withOffsetResetPolicy(offsetResetPolicy)
     )
+        .filter { _, value -> value != null }
         .filter { _, value -> value.hasNonNull("@behov") && value.skalOppfyllesAvOss(behovstype) }
         .filterNot { _, value -> value.harLøsning() }
         .peek { key, _ -> log.info("mottok melding {}", keyValue("behovId", key)) }
