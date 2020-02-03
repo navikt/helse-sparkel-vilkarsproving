@@ -79,8 +79,8 @@ repositories {
 }
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_11
-    targetCompatibility = JavaVersion.VERSION_11
+    sourceCompatibility = JavaVersion.VERSION_12
+    targetCompatibility = JavaVersion.VERSION_12
 }
 
 tasks.named<Jar>("jar") {
@@ -103,11 +103,11 @@ tasks.named<Jar>("jar") {
 }
 
 tasks.named<KotlinCompile>("compileKotlin") {
-    kotlinOptions.jvmTarget = "11"
+    kotlinOptions.jvmTarget = "12"
 }
 
 tasks.named<KotlinCompile>("compileTestKotlin") {
-    kotlinOptions.jvmTarget = "11"
+    kotlinOptions.jvmTarget = "12"
 }
 
 tasks.withType<Test> {
