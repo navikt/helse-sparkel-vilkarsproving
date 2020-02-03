@@ -38,7 +38,7 @@ spec:
         kvPath: /kv/prod/fss/sparkel-vilkarsproving/default
       - mountPath: /var/run/secrets/nais.io/azure
         kvPath: /azuread/data/prod/creds/sparkel-vilkarsproving
-      - mountPath: /var/run/secrets/nais.io/vault
+      - mountPath: /var/run/secrets/nais.io/service_user
         kvPath: /serviceuser/data/prod/srvsparkelvilkar
   env:
   - name: KAFKA_BOOTSTRAP_SERVERS
@@ -49,5 +49,3 @@ spec:
     value: https://sts.adeo.no/SecurityTokenServiceProvider/
   - name: EGENANSATT_URL
     value: https://wasapp.adeo.no/tpsws/EgenAnsatt_v1
-  - name: AKTORREGISTER_URL
-    value: https://app.adeo.no/aktoerregister

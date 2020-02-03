@@ -47,6 +47,7 @@ dependencies {
     implementation("javax.activation:activation:1.1.1")
 
     implementation("no.nav.tjenestespesifikasjoner:egenansatt-v1-tjenestespesifikasjon:$egenAnsattVersion")
+    implementation("no.nav.helse:rapids-rivers:1.161aa05")
 
     testImplementation("io.mockk:mockk:$mockkVersion")
     testImplementation("com.github.tomakehurst:wiremock:$wireMockVersion") {
@@ -60,9 +61,19 @@ dependencies {
     testImplementation("org.awaitility:awaitility:3.1.6")
 }
 
+val githubUser: String by project
+val githubPassword: String by project
+
 repositories {
     jcenter()
     mavenCentral()
+    maven {
+        url = uri("https://maven.pkg.github.com/navikt/helse-spleis")
+        credentials {
+            username = githubUser
+            password = githubPassword
+        }
+    }
     maven("https://dl.bintray.com/kotlin/ktor")
     maven("http://packages.confluent.io/maven/")
 }

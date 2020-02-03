@@ -1,4 +1,4 @@
-package no.nav.helse.sparkel
+package no.nav.helse.sparkel.egenansatt
 
 import org.apache.cxf.Bus
 import org.apache.cxf.BusFactory
@@ -17,7 +17,7 @@ import org.apache.neethi.Policy
 const val STS_CLIENT_AUTHENTICATION_POLICY = "classpath:sts/policies/untPolicy.xml"
 const val STS_SAML_POLICY = "classpath:sts/policies/requestSamlPolicy.xml"
 
-fun stsClient(stsUrl: String, credentials: Pair<String, String>): STSClient {
+fun stsClient(stsUrl: String, username: String, password: String): STSClient {
     val bus = BusFactory.getDefaultBus()
     return STSClient(bus).apply {
         isEnableAppliesTo = false
@@ -27,8 +27,8 @@ fun stsClient(stsUrl: String, credentials: Pair<String, String>): STSClient {
         features = listOf(LoggingFeature())
 
         properties = mapOf(
-                SecurityConstants.USERNAME to credentials.first,
-                SecurityConstants.PASSWORD to credentials.second
+                SecurityConstants.USERNAME to username,
+                SecurityConstants.PASSWORD to password
         )
         setPolicy(bus.resolvePolicy(STS_CLIENT_AUTHENTICATION_POLICY))
     }
