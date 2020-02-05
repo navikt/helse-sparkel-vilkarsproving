@@ -5,12 +5,12 @@ import java.nio.file.Path
 import java.nio.file.Paths
 import java.util.Base64
 
-const val vaultBase = "/var/run/secrets/nais.io/vault"
-val vaultBasePath: Path = Paths.get(vaultBase)
+const val vaultServiceUserBase = "/var/run/secrets/nais.io/service_user"
+val vaultServiceUserBasePath: Path = Paths.get(vaultServiceUserBase)
 
 fun readServiceUserCredentials() = ServiceUser(
-    username = Files.readString(vaultBasePath.resolve("username")),
-    password = Files.readString(vaultBasePath.resolve("password"))
+    username = Files.readString(vaultServiceUserBasePath.resolve("username")),
+    password = Files.readString(vaultServiceUserBasePath.resolve("password"))
 )
 
 fun setUpEnvironment() =
