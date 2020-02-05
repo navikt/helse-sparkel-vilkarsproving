@@ -1,4 +1,4 @@
-package no.nav.helse.sparkel
+package no.nav.helse.sparkel.egenansatt
 
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.SerializationFeature
@@ -9,7 +9,6 @@ import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helse.rapids_rivers.toJson
-import no.nav.helse.sparkel.EgenAnsattRiver.Companion.behov
 import no.nav.tjeneste.pip.egen.ansatt.v1.EgenAnsattV1
 import no.nav.tjeneste.pip.egen.ansatt.v1.WSHentErEgenAnsattEllerIFamilieMedEgenAnsattRequest
 import org.slf4j.LoggerFactory
@@ -29,7 +28,7 @@ internal class EgenAnsattLøser(private val egenAnsattService: EgenAnsattV1) : R
                 WSHentErEgenAnsattEllerIFamilieMedEgenAnsattRequest().withIdent(packet["fødselsnummer"].asText())
             ).isEgenAnsatt
                 .also {
-                    packet.setLøsning(behov, it)
+                    packet.setLøsning(EgenAnsattRiver.behov, it)
                 }
             log.info("løser behov: ${packet["@id"].textValue()}")
 

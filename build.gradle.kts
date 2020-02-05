@@ -30,6 +30,9 @@ dependencies {
     implementation("ch.qos.logback:logback-classic:1.2.3")
     implementation("net.logstash.logback:logstash-logback-encoder:5.2")
     implementation("io.ktor:ktor-server-netty:$ktorVersion")
+    implementation("io.ktor:ktor-client-cio:$ktorVersion")
+    implementation("io.ktor:ktor-client-jackson:$ktorVersion")
+
 
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin:$jacksonVersion")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jacksonVersion")
@@ -59,6 +62,7 @@ dependencies {
 
     testImplementation("no.nav:kafka-embedded-env:2.2.3")
     testImplementation("org.awaitility:awaitility:3.1.6")
+    testImplementation("io.ktor:ktor-client-mock-jvm:$ktorVersion")
 }
 
 val githubUser: String by project

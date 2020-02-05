@@ -1,5 +1,6 @@
 package no.nav.helse.sparkel.egenansatt
 
+import no.nav.helse.sparkel.ServiceUser
 import org.apache.cxf.Bus
 import org.apache.cxf.BusFactory
 import org.apache.cxf.binding.soap.Soap12
@@ -17,7 +18,7 @@ import org.apache.neethi.Policy
 const val STS_CLIENT_AUTHENTICATION_POLICY = "classpath:sts/policies/untPolicy.xml"
 const val STS_SAML_POLICY = "classpath:sts/policies/requestSamlPolicy.xml"
 
-fun stsClient(stsUrl: String, username: String, password: String): STSClient {
+fun stsClient(stsUrl: String, serviceUser: ServiceUser): STSClient {
     val bus = BusFactory.getDefaultBus()
     return STSClient(bus).apply {
         isEnableAppliesTo = false
@@ -27,8 +28,8 @@ fun stsClient(stsUrl: String, username: String, password: String): STSClient {
         features = listOf(LoggingFeature())
 
         properties = mapOf(
-                SecurityConstants.USERNAME to username,
-                SecurityConstants.PASSWORD to password
+                SecurityConstants.USERNAME to serviceUser.username,
+                SecurityConstants.PASSWORD to serviceUser.password
         )
         setPolicy(bus.resolvePolicy(STS_CLIENT_AUTHENTICATION_POLICY))
     }

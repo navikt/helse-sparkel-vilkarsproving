@@ -1,4 +1,4 @@
-package no.nav.helse.sparkel.sykepengeperioder
+package no.nav.helse.sparkel.egenansatt
 
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.SerializationFeature
@@ -7,8 +7,6 @@ import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import io.mockk.every
 import io.mockk.mockk
 import no.nav.helse.rapids_rivers.RapidsConnection
-import no.nav.helse.sparkel.EgenAnsattLøser
-import no.nav.helse.sparkel.EgenAnsattRiver
 import no.nav.tjeneste.pip.egen.ansatt.v1.EgenAnsattV1
 import no.nav.tjeneste.pip.egen.ansatt.v1.WSHentErEgenAnsattEllerIFamilieMedEgenAnsattResponse
 import org.junit.jupiter.api.Assertions.assertFalse

@@ -53,3 +53,5 @@ spec:
     value: https://sts-q1.preprod.local/SecurityTokenServiceProvider/
   - name: EGENANSATT_URL
     value: https://wasapp-q1.adeo.no/tpsws/EgenAnsatt_v1
+  - name: AAREG_BASE_URL
+    value: https://modapp-q1.adeo.no/aareg-services/api

@@ -1,9 +1,8 @@
-package no.nav.helse.sparkel.sykepengeperioder
+package no.nav.helse.sparkel.egenansatt
 
 import com.fasterxml.jackson.databind.JsonNode
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
-import no.nav.helse.sparkel.EgenAnsattRiver
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
