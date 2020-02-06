@@ -30,7 +30,7 @@ fun createApp(env: Environment): AppBuilder {
     val serviceUser = readServiceUserCredentials()
 
     val stsClientWs = stsClient(
-        stsUrl = env.stsBaseUrl,
+        stsUrl = env.stsSoapBaseUrl,
         serviceUser = serviceUser
     )
 

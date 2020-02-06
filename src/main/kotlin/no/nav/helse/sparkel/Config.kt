@@ -16,6 +16,7 @@ fun readServiceUserCredentials() = ServiceUser(
 fun setUpEnvironment() =
     Environment(
         raw = System.getenv(),
+        stsSoapBaseUrl = System.getenv("STS_URL"),
         aaregBaseUrl = System.getenv("AAREG_BASE_URL")
             ?: error("Mangler env var FPSAK_BASE_URL"),
         egenAnsattBaseUrl = System.getenv("EGENANSATT_URL")
@@ -25,6 +26,7 @@ fun setUpEnvironment() =
 data class Environment(
     val raw: Map<String, String>,
     val stsBaseUrl: String = "http://security-token-service",
+    val stsSoapBaseUrl: String,
     val aaregBaseUrl: String,
     val egenAnsattBaseUrl: String
 )
