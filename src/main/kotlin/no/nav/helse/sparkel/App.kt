@@ -53,6 +53,7 @@ fun createApp(env: Environment): AppBuilder {
 
     val opptjeningRiver = OpptjeningRiver()
     opptjeningRiver.register(OpptjeningLøser(aregClient))
+    builder.register(opptjeningRiver)
 
     return builder
 }
