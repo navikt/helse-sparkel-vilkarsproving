@@ -34,7 +34,6 @@ internal class OpptjeningLøserTest {
         løser.onPacket(objectMapper.readTree(behov), context)
         val løsning = sendtMelding.løsning()
         assertTrue(løsning.isNotEmpty())
-        println(sendtMelding)
     }
 
     private fun JsonNode.løsning(): List<Arbeidsforhold> =
