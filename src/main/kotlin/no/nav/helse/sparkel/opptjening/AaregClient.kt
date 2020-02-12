@@ -34,7 +34,7 @@ class AaregClient(
     private fun JsonNode.toArbeidsforhold() = Arbeidsforhold(
         ansattSiden = this.path("ansettelsesperiode").path("periode").path("fom").asLocalDate(),
         ansattTil = this.path("ansettelsesperiode").path("periode").path("tom").asOptionalLocalDate(),
-        orgnummer = this["arbeidsforholdId"].asText()
+        orgnummer = this["arbeidsgiver"].path("organisasjonsnummer").asText()
     )
 }
 
