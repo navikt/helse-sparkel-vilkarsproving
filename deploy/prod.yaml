@@ -44,9 +44,9 @@ spec:
   - name: KAFKA_BOOTSTRAP_SERVERS
     value: a01apvl00145.adeo.no:8443,a01apvl00146.adeo.no:8443,a01apvl00147.adeo.no:8443,a01apvl00148.adeo.no:8443,a01apvl00149.adeo.no:8443,a01apvl00150.adeo.no:8443
   - name: KAFKA_CONSUMER_GROUP_ID
-    value: sparkel-vilkarsproving-consumer
+    value: sparkel-vilkarsproving-v1
   - name: KAFKA_RAPID_TOPIC
-    value: privat-helse-sykepenger-rapid-v1
+    value: helse-rapid-v1
   - name: AZURE_TENANT_ID
     value: 62366534-1ec3-4962-8869-9b5535279d0b
   - name: STS_URL
