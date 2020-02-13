@@ -3,6 +3,7 @@ package no.nav.helse.sparkel.opptjening
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.node.ObjectNode
 import com.fasterxml.jackson.module.kotlin.convertValue
+import io.ktor.client.features.ClientRequestException
 import kotlinx.coroutines.runBlocking
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
@@ -18,13 +19,18 @@ class OpptjeningLøser(private val aaregClient: AaregClient) : River.PacketListe
     override fun onPacket(packet: JsonNode, context: RapidsConnection.MessageContext) {
         sikkerlogg.info("Mottok melding: ${packet.toJson()}")
 
-        runBlocking {
-            aaregClient.hentArbeidsforhold(packet["fødselsnummer"].asText())
-                .also { packet.setLøsning(OpptjeningRiver.behov, it) }
-        }
+        try {
+            runBlocking {
+                aaregClient.hentArbeidsforhold(packet["fødselsnummer"].asText())
+                    .also { packet.setLøsning(OpptjeningRiver.behov, it) }
+            }
 
-        log.info("løser behov: ${packet["@id"].textValue()}")
-        context.send(packet.toJson())
+            log.info("løser behov: ${packet["@id"].textValue()}")
+            context.send(packet.toJson())
+        } catch (err: ClientRequestException) {
+            log.error("Feilmelding for behov=${packet["@id"].textValue()}")
+            sikkerlogg.error("Feilmelding for behov=${packet["@id"].textValue()} ved oppslag i AAreg: ${err.message}", err)
+        }
     }
 
     private fun JsonNode.setLøsning(nøkkel: String, data: Any) =
