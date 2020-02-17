@@ -7,26 +7,32 @@ import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import io.ktor.client.HttpClient
 import io.ktor.client.features.json.JacksonSerializer
 import io.ktor.client.features.json.JsonFeature
-import no.nav.helse.rapids_rivers.AppBuilder
-import no.nav.helse.sparkel.egenansatt.*
+import io.ktor.util.KtorExperimentalAPI
+import no.nav.helse.rapids_rivers.RapidApplication
+import no.nav.helse.rapids_rivers.RapidsConnection
+import no.nav.helse.sparkel.egenansatt.EgenAnsattFactory
+import no.nav.helse.sparkel.egenansatt.EgenAnsattLøser
+import no.nav.helse.sparkel.egenansatt.configureFor
+import no.nav.helse.sparkel.egenansatt.stsClient
 import no.nav.helse.sparkel.opptjening.AaregClient
 import no.nav.helse.sparkel.opptjening.OpptjeningLøser
-import no.nav.helse.sparkel.opptjening.OpptjeningRiver
 import no.nav.helse.sparkel.opptjening.StsRestClient
 import org.apache.cxf.ext.logging.LoggingFeature
 
+@KtorExperimentalAPI
 fun main() {
     val env = setUpEnvironment()
     val app = createApp(env)
     app.start()
 }
 
-val objectMapper: ObjectMapper = jacksonObjectMapper()
+internal val objectMapper: ObjectMapper = jacksonObjectMapper()
     .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
     .registerModule(JavaTimeModule())
 
-fun createApp(env: Environment): AppBuilder {
-    val builder = AppBuilder(env.raw)
+@KtorExperimentalAPI
+fun createApp(env: Environment): RapidsConnection {
+    val rapidsConnection = RapidApplication.create(env.raw)
     val serviceUser = readServiceUserCredentials()
 
     val stsClientWs = stsClient(
@@ -47,15 +53,10 @@ fun createApp(env: Environment): AppBuilder {
         httpClient = simpleHttpClient()
     )
 
-    val egenAnsattRiver = EgenAnsattRiver()
-    egenAnsattRiver.register(EgenAnsattLøser(egenAnsattService))
-    builder.register(egenAnsattRiver)
+    EgenAnsattLøser(rapidsConnection, egenAnsattService)
+    OpptjeningLøser(rapidsConnection, aregClient)
 
-    val opptjeningRiver = OpptjeningRiver()
-    opptjeningRiver.register(OpptjeningLøser(aregClient))
-    builder.register(opptjeningRiver)
-
-    return builder
+    return rapidsConnection
 }
 
 private fun simpleHttpClient(serializer: JacksonSerializer? = JacksonSerializer()) = HttpClient() {

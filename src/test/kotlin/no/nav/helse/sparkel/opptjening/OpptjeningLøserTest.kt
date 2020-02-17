@@ -14,6 +14,20 @@ internal class OpptjeningLøserTest {
         .registerModule(JavaTimeModule())
 
     private lateinit var sendtMelding: JsonNode
+
+    private val rapid = object : RapidsConnection() {
+        fun sendTestMessage(message: String) {
+            listeners.forEach { it.onMessage(message, context) }
+        }
+
+        override fun publish(message: String) {}
+
+        override fun publish(key: String, message: String) {}
+
+        override fun start() {}
+
+        override fun stop() {}
+    }
     private val context = object : RapidsConnection.MessageContext {
         override fun send(message: String) {
             sendtMelding = objectMapper.readTree(message)
@@ -24,21 +38,21 @@ internal class OpptjeningLøserTest {
 
     @Test
     internal fun `løser opptjeningbehov`() {
-        val behov = """{"@id": "behovsid", "@behov":["${OpptjeningRiver.behov}"], "fødselsnummer": "fnr" }"""
+        val behov = """{"@id": "behovsid", "@behov":["${OpptjeningLøser.behov}"], "fødselsnummer": "fnr", "vedtaksperiodeId": "id" }"""
         val mockAaregClient = AaregClient(
             baseUrl = "http://baseUrl.local",
             stsRestClient = mockStsRestClient,
             httpClient = aregMockClient(mockGenerator)
         )
-        val løser = OpptjeningLøser(mockAaregClient)
-        løser.onPacket(objectMapper.readTree(behov), context)
+        val løser = OpptjeningLøser(rapid, mockAaregClient)
+        rapid.sendTestMessage(behov)
         val løsning = sendtMelding.løsning()
         assertTrue(løsning.isNotEmpty())
     }
 
     private fun JsonNode.løsning(): List<Arbeidsforhold> =
         this.path("@løsning")
-            .path(OpptjeningRiver.behov)
+            .path(OpptjeningLøser.behov)
             .map {
                 Arbeidsforhold(
                     it["orgnummer"].asText(),

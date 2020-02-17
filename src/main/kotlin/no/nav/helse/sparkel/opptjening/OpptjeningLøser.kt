@@ -1,44 +1,70 @@
 package no.nav.helse.sparkel.opptjening
 
-import com.fasterxml.jackson.databind.JsonNode
-import com.fasterxml.jackson.databind.node.ObjectNode
-import com.fasterxml.jackson.module.kotlin.convertValue
 import io.ktor.client.features.ClientRequestException
 import kotlinx.coroutines.runBlocking
+import net.logstash.logback.argument.StructuredArguments.keyValue
+import no.nav.helse.rapids_rivers.JsonMessage
+import no.nav.helse.rapids_rivers.MessageProblems
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
-import no.nav.helse.rapids_rivers.toJson
-import no.nav.helse.sparkel.objectMapper
 import org.slf4j.LoggerFactory
 
-class OpptjeningLøser(private val aaregClient: AaregClient) : River.PacketListener {
+class OpptjeningLøser(rapidsConnection: RapidsConnection, private val aaregClient: AaregClient) : River.PacketListener {
+
+    companion object {
+        internal const val behov = "Opptjening"
+    }
 
     private val sikkerlogg = LoggerFactory.getLogger("tjenestekall")
     private val log = LoggerFactory.getLogger(this::class.java)
 
-    override fun onPacket(packet: JsonNode, context: RapidsConnection.MessageContext) {
+    init {
+        River(rapidsConnection).apply {
+            validate { it.requireAll("@behov", listOf(behov)) }
+            validate { it.forbid("@løsning") }
+            validate { it.requireKey("@id") }
+            validate { it.requireKey("fødselsnummer") }
+            validate { it.requireKey("vedtaksperiodeId") }
+        }.register(this)
+    }
+
+    override fun onPacket(packet: JsonMessage, context: RapidsConnection.MessageContext) {
         sikkerlogg.info("Mottok melding: ${packet.toJson()}")
 
         try {
             runBlocking {
-                aaregClient.hentArbeidsforhold(packet["fødselsnummer"].asText())
-                    .also { packet.setLøsning(OpptjeningRiver.behov, it) }
+                aaregClient.hentArbeidsforhold(packet["fødselsnummer"].asText()).also {
+                    packet.setLøsning(behov, it)
+                }
             }
 
-            log.info("løser behov: ${packet["@id"].textValue()}")
+            log.info(
+                "løser behov={} for {}",
+                keyValue("id", packet["@id"].asText()),
+                keyValue("vedtaksperiodeId", packet["vedtaksperiodeId"].asText())
+            )
+
             context.send(packet.toJson())
         } catch (err: ClientRequestException) {
-            log.error("Feilmelding for behov=${packet["@id"].textValue()}")
-            sikkerlogg.error("Feilmelding for behov=${packet["@id"].textValue()} ved oppslag i AAreg: ${err.message}", err)
+            log.error(
+                "Feilmelding for behov={} for {} ved oppslag i AAreg",
+                keyValue("id", packet["@id"].asText()),
+                keyValue("vedtaksperiodeId", packet["vedtaksperiodeId"].asText())
+            )
+            sikkerlogg.error(
+                "Feilmelding for behov={} for {} ved oppslag i AAreg: ${err.message}",
+                keyValue("id", packet["@id"].asText()),
+                keyValue("vedtaksperiodeId", packet["vedtaksperiodeId"].asText()),
+                err
+            )
         }
     }
 
-    private fun JsonNode.setLøsning(nøkkel: String, data: Any) =
-        (this as ObjectNode).set<JsonNode>(
-            "@løsning", objectMapper.convertValue(
-                mapOf(
-                    nøkkel to data
-                )
-            )
+    override fun onError(problems: MessageProblems, context: RapidsConnection.MessageContext) {}
+
+    private fun JsonMessage.setLøsning(nøkkel: String, data: Any) {
+        this["@løsning"] = mapOf(
+            nøkkel to data
         )
+    }
 }

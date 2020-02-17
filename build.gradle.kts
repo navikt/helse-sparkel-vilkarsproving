@@ -26,21 +26,9 @@ buildscript {
 }
 
 dependencies {
-    implementation(kotlin("stdlib"))
-    implementation("ch.qos.logback:logback-classic:1.2.3")
-    implementation("net.logstash.logback:logstash-logback-encoder:5.2")
-    implementation("io.ktor:ktor-server-netty:$ktorVersion")
+    implementation("no.nav.helse:rapids-rivers:1.acac29f")
     implementation("io.ktor:ktor-client-cio:$ktorVersion")
     implementation("io.ktor:ktor-client-jackson:$ktorVersion")
-
-
-    implementation("com.fasterxml.jackson.module:jackson-module-kotlin:$jacksonVersion")
-    implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jacksonVersion")
-
-    implementation("org.apache.kafka:kafka-streams:$kafkaVersion")
-
-    implementation("io.ktor:ktor-metrics-micrometer:$ktorVersion")
-    implementation("io.micrometer:micrometer-registry-prometheus:$micrometerRegistryPrometheusVersion")
 
     implementation("com.sun.xml.ws:jaxws-ri:$jaxWsVersion")
     implementation("org.apache.cxf:cxf-rt-frontend-jaxws:$cxfVersion")
@@ -50,7 +38,6 @@ dependencies {
     implementation("javax.activation:activation:1.1.1")
 
     implementation("no.nav.tjenestespesifikasjoner:egenansatt-v1-tjenestespesifikasjon:$egenAnsattVersion")
-    implementation("no.nav.helse:rapids-rivers:1.161aa05")
 
     testImplementation("io.mockk:mockk:$mockkVersion")
     testImplementation("com.github.tomakehurst:wiremock:$wireMockVersion") {
@@ -88,7 +75,7 @@ java {
 }
 
 tasks.named<Jar>("jar") {
-    baseName = "app"
+    archiveBaseName.set("app")
 
     manifest {
         attributes["Main-Class"] = mainClass
