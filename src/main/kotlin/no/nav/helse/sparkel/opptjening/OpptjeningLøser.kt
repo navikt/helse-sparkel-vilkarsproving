@@ -31,33 +31,34 @@ class OpptjeningLøser(rapidsConnection: RapidsConnection, private val aaregClie
     override fun onPacket(packet: JsonMessage, context: RapidsConnection.MessageContext) {
         sikkerlogg.info("Mottok melding: ${packet.toJson()}")
 
-        try {
+        val arbeidsforhold = try {
             runBlocking {
-                aaregClient.hentArbeidsforhold(packet["fødselsnummer"].asText()).also {
-                    packet.setLøsning(behov, it)
-                }
+                aaregClient.hentArbeidsforhold(packet["fødselsnummer"].asText())
+            }.also {
+                log.info(
+                    "løser behov={} for {}",
+                    keyValue("id", packet["@id"].asText()),
+                    keyValue("vedtaksperiodeId", packet["vedtaksperiodeId"].asText())
+                )
             }
-
-            log.info(
-                "løser behov={} for {}",
-                keyValue("id", packet["@id"].asText()),
-                keyValue("vedtaksperiodeId", packet["vedtaksperiodeId"].asText())
-            )
-
-            context.send(packet.toJson())
         } catch (err: ClientRequestException) {
-            log.error(
-                "Feilmelding for behov={} for {} ved oppslag i AAreg",
-                keyValue("id", packet["@id"].asText()),
-                keyValue("vedtaksperiodeId", packet["vedtaksperiodeId"].asText())
-            )
-            sikkerlogg.error(
-                "Feilmelding for behov={} for {} ved oppslag i AAreg: ${err.message}",
-                keyValue("id", packet["@id"].asText()),
-                keyValue("vedtaksperiodeId", packet["vedtaksperiodeId"].asText()),
-                err
-            )
+            emptyList<Arbeidsforhold>().also {
+                log.error(
+                    "Feilmelding for behov={} for {} ved oppslag i AAreg. Svarer med tom liste",
+                    keyValue("id", packet["@id"].asText()),
+                    keyValue("vedtaksperiodeId", packet["vedtaksperiodeId"].asText())
+                )
+                sikkerlogg.error(
+                    "Feilmelding for behov={} for {} ved oppslag i AAreg: ${err.message}. Svarer med tom liste.",
+                    keyValue("id", packet["@id"].asText()),
+                    keyValue("vedtaksperiodeId", packet["vedtaksperiodeId"].asText()),
+                    err
+                )
+            }
         }
+
+        packet.setLøsning(behov, arbeidsforhold)
+        context.send(packet.toJson())
     }
 
     override fun onError(problems: MessageProblems, context: RapidsConnection.MessageContext) {}
