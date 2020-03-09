@@ -26,7 +26,7 @@ buildscript {
 }
 
 dependencies {
-    implementation("no.nav.helse:rapids-rivers:1.40300fd")
+    implementation("no.nav.helse:rapids-and-rivers:1.56d085f")
     implementation("io.ktor:ktor-client-cio:$ktorVersion")
     implementation("io.ktor:ktor-client-jackson:$ktorVersion")
 
@@ -59,7 +59,7 @@ repositories {
     jcenter()
     mavenCentral()
     maven {
-        url = uri("https://maven.pkg.github.com/navikt/helse-spleis")
+        url = uri("https://maven.pkg.github.com/navikt/rapids-and-rivers")
         credentials {
             username = githubUser
             password = githubPassword
