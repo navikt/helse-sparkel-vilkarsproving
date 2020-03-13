@@ -12,6 +12,7 @@ import io.ktor.client.response.readText
 import io.ktor.http.ContentType
 import no.nav.helse.sparkel.objectMapper
 import java.time.LocalDate
+import java.util.*
 
 
 class AaregClient(
@@ -19,10 +20,12 @@ class AaregClient(
     private val stsRestClient: StsRestClient,
     private val httpClient: HttpClient = HttpClient()
 ) {
-    internal suspend fun hentArbeidsforhold(fnr: String): List<Arbeidsforhold> =
+    internal suspend fun hentArbeidsforhold(fnr: String, callId: UUID = UUID.randomUUID()): List<Arbeidsforhold> =
         httpClient.get<HttpResponse>("$baseUrl/v1/arbeidstaker/arbeidsforhold") {
             header("Authorization", "Bearer ${stsRestClient.token()}")
             header("Nav-Consumer-Token", "Bearer ${stsRestClient.token()}")
+            System.getenv("NAIS_APP_NAME")?.also { header("Nav-Consumer-Id", it) }
+            header("Nav-Call-Id", callId)
             accept(ContentType.Application.Json)
             header("Nav-Personident", fnr)
         }.let {

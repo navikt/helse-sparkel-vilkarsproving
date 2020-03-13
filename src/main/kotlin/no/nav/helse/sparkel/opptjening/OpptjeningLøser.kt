@@ -9,6 +9,7 @@ import no.nav.helse.rapids_rivers.MessageProblems
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import org.slf4j.LoggerFactory
+import java.util.*
 
 class OpptjeningLøser(rapidsConnection: RapidsConnection, private val aaregClient: AaregClient) : River.PacketListener {
 
@@ -31,10 +32,9 @@ class OpptjeningLøser(rapidsConnection: RapidsConnection, private val aaregClie
 
     override fun onPacket(packet: JsonMessage, context: RapidsConnection.MessageContext) {
         sikkerlogg.info("Mottok melding: ${packet.toJson()}")
-
         val arbeidsforhold = try {
             runBlocking {
-                aaregClient.hentArbeidsforhold(packet["fødselsnummer"].asText())
+                aaregClient.hentArbeidsforhold(packet["fødselsnummer"].asText(), UUID.fromString(packet["@id"].asText()))
             }.also {
                 log.info(
                     "løser behov={} for {}",
