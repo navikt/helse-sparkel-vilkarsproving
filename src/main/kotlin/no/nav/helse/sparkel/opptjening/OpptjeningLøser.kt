@@ -1,6 +1,7 @@
 package no.nav.helse.sparkel.opptjening
 
 import io.ktor.client.features.ClientRequestException
+import io.ktor.client.response.readText
 import kotlinx.coroutines.runBlocking
 import net.logstash.logback.argument.StructuredArguments.keyValue
 import no.nav.helse.rapids_rivers.JsonMessage
@@ -49,9 +50,10 @@ class OpptjeningLøser(rapidsConnection: RapidsConnection, private val aaregClie
                     keyValue("vedtaksperiodeId", packet["vedtaksperiodeId"].asText())
                 )
                 sikkerlogg.error(
-                    "Feilmelding for behov={} for {} ved oppslag i AAreg: ${err.message}. Svarer med tom liste.",
+                    "Feilmelding for behov={} for {} ved oppslag i AAreg: ${err.message}. Svarer med tom liste. Response: {}",
                     keyValue("id", packet["@id"].asText()),
                     keyValue("vedtaksperiodeId", packet["vedtaksperiodeId"].asText()),
+                    runBlocking { err.response.readText() },
                     err
                 )
             }
