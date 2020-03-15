@@ -7,6 +7,7 @@ import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import no.nav.helse.rapids_rivers.RapidsConnection
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
+import java.util.*
 
 internal class OpptjeningLøserTest {
     private val objectMapper = jacksonObjectMapper()
@@ -38,7 +39,7 @@ internal class OpptjeningLøserTest {
 
     @Test
     internal fun `løser opptjeningbehov`() {
-        val behov = """{"@id": "behovsid", "@behov":["${OpptjeningLøser.behov}"], "fødselsnummer": "fnr", "vedtaksperiodeId": "id" }"""
+        val behov = """{"@id": "${UUID.randomUUID()}", "@behov":["${OpptjeningLøser.behov}"], "fødselsnummer": "fnr", "vedtaksperiodeId": "id" }"""
         val mockAaregClient = AaregClient(
             baseUrl = "http://baseUrl.local",
             stsRestClient = mockStsRestClient,

@@ -1,22 +1,16 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
-val slf4jVersion = "1.7.25"
 val ktorVersion = "1.2.4"
-val jacksonVersion = "2.9.8"
-val kafkaVersion = "2.3.0"
-val prometheusVersion = "0.6.0"
-val micrometerRegistryPrometheusVersion = "1.1.5"
 val cxfVersion = "3.3.1"
 val egenAnsattVersion = "1.2019.09.25-00.21-49b69f0625e0"
 val jaxWsVersion = "2.3.2"
 val wireMockVersion = "2.19.0"
-val mockkVersion = "1.9.3.kotlin12"
-val junitJupiterVersion = "5.5.2"
-val kafkaContainerVersion = "1.12.3"
+val mockkVersion = "1.9.3"
+val junitJupiterVersion = "5.6.0"
 val mainClass = "no.nav.helse.sparkel.AppKt"
 
 plugins {
-    kotlin("jvm") version "1.3.60"
+    kotlin("jvm") version "1.3.70"
 }
 
 buildscript {
@@ -26,7 +20,7 @@ buildscript {
 }
 
 dependencies {
-    implementation("no.nav.helse:rapids-and-rivers:1.44ef801")
+    implementation("com.github.navikt:rapids-and-rivers:1.a468ae5")
     implementation("io.ktor:ktor-client-cio:$ktorVersion")
     implementation("io.ktor:ktor-client-jackson:$ktorVersion")
 
@@ -56,7 +50,6 @@ val githubUser: String by project
 val githubPassword: String by project
 
 repositories {
-    jcenter()
     mavenCentral()
     maven {
         url = uri("https://maven.pkg.github.com/navikt/rapids-and-rivers")
@@ -65,7 +58,6 @@ repositories {
             password = githubPassword
         }
     }
-    maven("https://dl.bintray.com/kotlin/ktor")
     maven("http://packages.confluent.io/maven/")
 }
 
