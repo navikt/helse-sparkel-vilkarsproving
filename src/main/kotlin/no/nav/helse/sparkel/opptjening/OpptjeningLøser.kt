@@ -1,7 +1,7 @@
 package no.nav.helse.sparkel.opptjening
 
 import io.ktor.client.features.ClientRequestException
-import io.ktor.client.response.readText
+import io.ktor.client.statement.readText
 import kotlinx.coroutines.runBlocking
 import net.logstash.logback.argument.StructuredArguments.keyValue
 import no.nav.helse.rapids_rivers.JsonMessage
@@ -22,7 +22,7 @@ class OpptjeningLøser(rapidsConnection: RapidsConnection, private val aaregClie
 
     init {
         River(rapidsConnection).apply {
-            validate { it.requireAll("@behov", listOf(behov)) }
+            validate { it.requireContains("@behov", behov) }
             validate { it.forbid("@løsning") }
             validate { it.requireKey("@id") }
             validate { it.requireKey("fødselsnummer") }

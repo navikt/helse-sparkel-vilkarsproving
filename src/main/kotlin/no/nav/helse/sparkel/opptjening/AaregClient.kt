@@ -7,8 +7,8 @@ import io.ktor.client.HttpClient
 import io.ktor.client.request.accept
 import io.ktor.client.request.get
 import io.ktor.client.request.header
-import io.ktor.client.response.HttpResponse
-import io.ktor.client.response.readText
+import io.ktor.client.statement.HttpStatement
+import io.ktor.client.statement.readText
 import io.ktor.http.ContentType
 import no.nav.helse.sparkel.objectMapper
 import java.time.LocalDate
@@ -21,18 +21,16 @@ class AaregClient(
     private val httpClient: HttpClient = HttpClient()
 ) {
     internal suspend fun hentArbeidsforhold(fnr: String, callId: UUID = UUID.randomUUID()): List<Arbeidsforhold> =
-        httpClient.get<HttpResponse>("$baseUrl/v1/arbeidstaker/arbeidsforhold") {
+        httpClient.get<HttpStatement>("$baseUrl/v1/arbeidstaker/arbeidsforhold") {
             header("Authorization", "Bearer ${stsRestClient.token()}")
             header("Nav-Consumer-Token", "Bearer ${stsRestClient.token()}")
             System.getenv("NAIS_APP_NAME")?.also { header("Nav-Consumer-Id", it) }
             header("Nav-Call-Id", callId)
             accept(ContentType.Application.Json)
             header("Nav-Personident", fnr)
-        }.let {
-            objectMapper.readValue<ArrayNode>(it.readText())
-        }.map {
-            it.toArbeidsforhold()
         }
+            .execute { objectMapper.readValue<ArrayNode>(it.readText()) }
+            .map { it.toArbeidsforhold() }
 
     private fun JsonNode.toArbeidsforhold() = Arbeidsforhold(
         ansattSiden = this.path("ansettelsesperiode").path("periode").path("fom").asLocalDate(),

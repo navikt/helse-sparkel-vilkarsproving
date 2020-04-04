@@ -7,7 +7,6 @@ import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import io.ktor.client.HttpClient
 import io.ktor.client.features.json.JacksonSerializer
 import io.ktor.client.features.json.JsonFeature
-import io.ktor.util.KtorExperimentalAPI
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.sparkel.egenansatt.EgenAnsattFactory
@@ -19,7 +18,6 @@ import no.nav.helse.sparkel.opptjening.OpptjeningLøser
 import no.nav.helse.sparkel.opptjening.StsRestClient
 import org.apache.cxf.ext.logging.LoggingFeature
 
-@KtorExperimentalAPI
 fun main() {
     val env = setUpEnvironment()
     val app = createApp(env)
@@ -30,7 +28,7 @@ internal val objectMapper: ObjectMapper = jacksonObjectMapper()
     .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
     .registerModule(JavaTimeModule())
 
-@KtorExperimentalAPI
+
 fun createApp(env: Environment): RapidsConnection {
     val rapidsConnection = RapidApplication.create(env.raw)
     val serviceUser = readServiceUserCredentials()

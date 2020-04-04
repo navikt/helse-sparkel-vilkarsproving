@@ -45,7 +45,7 @@ internal class OpptjeningLøserTest {
             stsRestClient = mockStsRestClient,
             httpClient = aregMockClient(mockGenerator)
         )
-        val løser = OpptjeningLøser(rapid, mockAaregClient)
+        OpptjeningLøser(rapid, mockAaregClient)
         rapid.sendTestMessage(behov)
         val løsning = sendtMelding.løsning()
         assertTrue(løsning.isNotEmpty())
