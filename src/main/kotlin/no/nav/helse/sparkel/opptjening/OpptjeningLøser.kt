@@ -44,12 +44,12 @@ class OpptjeningLøser(rapidsConnection: RapidsConnection, private val aaregClie
             }
         } catch (err: ClientRequestException) {
             emptyList<Arbeidsforhold>().also {
-                log.error(
+                log.warn(
                     "Feilmelding for behov={} for {} ved oppslag i AAreg. Svarer med tom liste",
                     keyValue("id", packet["@id"].asText()),
                     keyValue("vedtaksperiodeId", packet["vedtaksperiodeId"].asText())
                 )
-                sikkerlogg.error(
+                sikkerlogg.warn(
                     "Feilmelding for behov={} for {} ved oppslag i AAreg: ${err.message}. Svarer med tom liste. Response: {}",
                     keyValue("id", packet["@id"].asText()),
                     keyValue("vedtaksperiodeId", packet["vedtaksperiodeId"].asText()),

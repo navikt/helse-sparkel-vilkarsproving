@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.node.ArrayNode
 import com.fasterxml.jackson.module.kotlin.readValue
 import io.ktor.client.HttpClient
+import io.ktor.client.features.timeout
 import io.ktor.client.request.accept
 import io.ktor.client.request.get
 import io.ktor.client.request.header
@@ -28,6 +29,11 @@ class AaregClient(
             header("Nav-Call-Id", callId)
             accept(ContentType.Application.Json)
             header("Nav-Personident", fnr)
+            timeout {
+                socketTimeoutMillis = 10000
+                requestTimeoutMillis = 10000
+                connectTimeoutMillis = 10000
+            }
         }
             .execute { objectMapper.readValue<ArrayNode>(it.readText()) }
             .map { it.toArbeidsforhold() }
