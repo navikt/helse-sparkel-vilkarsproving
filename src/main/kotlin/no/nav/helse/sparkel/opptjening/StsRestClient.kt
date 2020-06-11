@@ -2,7 +2,6 @@ package no.nav.helse.sparkel.opptjening
 
 import com.fasterxml.jackson.module.kotlin.readValue
 import io.ktor.client.HttpClient
-import io.ktor.client.features.timeout
 import io.ktor.client.request.accept
 import io.ktor.client.request.get
 import io.ktor.client.request.header
@@ -34,11 +33,6 @@ class StsRestClient(
     ) {
         header("Authorization", serviceUser.basicAuth)
         accept(ContentType.Application.Json)
-        timeout {
-            socketTimeoutMillis = 10000
-            requestTimeoutMillis = 10000
-            connectTimeoutMillis = 10000
-        }
     }.execute { objectMapper.readValue<Token>(it.readText()) }
 
     internal data class Token(

@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import io.ktor.client.HttpClient
+import io.ktor.client.features.HttpTimeout
 import io.ktor.client.features.json.JacksonSerializer
 import io.ktor.client.features.json.JsonFeature
 import no.nav.helse.rapids_rivers.RapidApplication
@@ -47,7 +48,7 @@ fun createApp(env: Environment): RapidsConnection {
 
     val aregClient = AaregClient(
         baseUrl = env.aaregBaseUrl,
-        stsRestClient = StsRestClient(env.stsBaseUrl, serviceUser),
+        stsRestClient = StsRestClient(env.stsBaseUrl, serviceUser, simpleHttpClient()),
         httpClient = simpleHttpClient()
     )
 
@@ -60,5 +61,10 @@ fun createApp(env: Environment): RapidsConnection {
 private fun simpleHttpClient(serializer: JacksonSerializer? = JacksonSerializer()) = HttpClient() {
     install(JsonFeature) {
         this.serializer = serializer
+    }
+    install(HttpTimeout) {
+        socketTimeoutMillis = 10000
+        requestTimeoutMillis = 10000
+        connectTimeoutMillis = 10000
     }
 }
