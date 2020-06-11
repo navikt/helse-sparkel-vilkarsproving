@@ -1,7 +1,7 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
-val ktorVersion = "1.3.1"
-val cxfVersion = "3.3.1"
+val ktorVersion = "1.3.2"
+val cxfVersion = "3.3.4"
 val egenAnsattVersion = "1.2019.09.25-00.21-49b69f0625e0"
 val jaxWsVersion = "2.3.2"
 val wireMockVersion = "2.19.0"
@@ -10,7 +10,7 @@ val junitJupiterVersion = "5.6.0"
 val mainClass = "no.nav.helse.sparkel.AppKt"
 
 plugins {
-    kotlin("jvm") version "1.3.70"
+    kotlin("jvm") version "1.3.72"
 }
 
 buildscript {
@@ -20,7 +20,7 @@ buildscript {
 }
 
 dependencies {
-    implementation("com.github.navikt:rapids-and-rivers:1.a1c8748")
+    implementation("com.github.navikt:rapids-and-rivers:1.74ae9cb")
     implementation("io.ktor:ktor-client-cio:$ktorVersion")
     implementation("io.ktor:ktor-client-jackson:$ktorVersion")
 
@@ -51,6 +51,7 @@ val githubPassword: String by project
 
 repositories {
     mavenCentral()
+    maven("https://kotlin.bintray.com/ktor")
     maven {
         url = uri("https://maven.pkg.github.com/navikt/rapids-and-rivers")
         credentials {
