@@ -25,7 +25,7 @@ fun setUpEnvironment() =
 
 data class Environment(
     val raw: Map<String, String>,
-    val stsBaseUrl: String = "http://security-token-service.default.svc.cluster.local",
+    val stsBaseUrl: String = "http://security-token-service.default.svc.nais.local",
     val stsSoapBaseUrl: String,
     val aaregBaseUrl: String,
     val egenAnsattBaseUrl: String
