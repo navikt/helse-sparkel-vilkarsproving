@@ -3,7 +3,7 @@ package no.nav.helse.sparkel
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
-import java.util.Base64
+import java.util.*
 
 const val vaultServiceUserBase = "/var/run/secrets/nais.io/service_user"
 val vaultServiceUserBasePath: Path = Paths.get(vaultServiceUserBase)
@@ -25,7 +25,7 @@ fun setUpEnvironment() =
 
 data class Environment(
     val raw: Map<String, String>,
-    val stsBaseUrl: String = "http://security-token-service",
+    val stsBaseUrl: String = "http://security-token-service.default.svc.cluster.local",
     val stsSoapBaseUrl: String,
     val aaregBaseUrl: String,
     val egenAnsattBaseUrl: String
