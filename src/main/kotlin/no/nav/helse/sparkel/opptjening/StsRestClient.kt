@@ -2,6 +2,7 @@ package no.nav.helse.sparkel.opptjening
 
 import com.fasterxml.jackson.module.kotlin.readValue
 import io.ktor.client.HttpClient
+import io.ktor.client.features.HttpTimeout
 import io.ktor.client.request.accept
 import io.ktor.client.request.get
 import io.ktor.client.request.header
@@ -19,7 +20,13 @@ import java.time.LocalDateTime
 class StsRestClient(
     private val baseUrl: String,
     private val serviceUser: ServiceUser,
-    private val httpClient: HttpClient = HttpClient()
+    private val httpClient: HttpClient = HttpClient() {
+        install(HttpTimeout) {
+            socketTimeoutMillis = 10000
+            requestTimeoutMillis = 10000
+            connectTimeoutMillis = 10000
+        }
+    }
 ) {
     private var cachedOidcToken: Token = runBlocking { fetchToken() }
 

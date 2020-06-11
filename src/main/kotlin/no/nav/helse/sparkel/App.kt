@@ -48,7 +48,7 @@ fun createApp(env: Environment): RapidsConnection {
 
     val aregClient = AaregClient(
         baseUrl = env.aaregBaseUrl,
-        stsRestClient = StsRestClient(env.stsBaseUrl, serviceUser, simpleHttpClient()),
+        stsRestClient = StsRestClient(env.stsBaseUrl, serviceUser),
         httpClient = simpleHttpClient()
     )
 

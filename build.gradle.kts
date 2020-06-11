@@ -58,7 +58,7 @@ repositories {
             password = githubPassword
         }
     }
-    maven("http://packages.confluent.io/maven/")
+    maven("https://packages.confluent.io/maven/")
 }
 
 java {
