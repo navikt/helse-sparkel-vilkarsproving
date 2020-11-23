@@ -1,5 +1,5 @@
 val ktorVersion = "1.3.2"
-val cxfVersion = "3.3.7"
+val cxfVersion = "3.4.0"
 val junitJupiterVersion = "5.6.2"
 
 plugins {
