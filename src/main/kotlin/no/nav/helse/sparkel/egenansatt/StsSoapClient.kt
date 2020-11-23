@@ -26,7 +26,7 @@ fun stsClient(stsUrl: String, serviceUser: ServiceUser): STSClient {
 
         location = stsUrl
         features = listOf(LoggingFeature().apply {
-            addSensitiveElementNames(setOf("Password"))
+            addSensitiveElementNames(setOf("wsse:Password"))
         })
 
         properties = mapOf(
