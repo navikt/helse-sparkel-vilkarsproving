@@ -41,7 +41,9 @@ fun createApp(env: Environment): RapidsConnection {
 
     val egenAnsattService = EgenAnsattFactory.create(
         env.egenAnsattBaseUrl,
-        listOf(LoggingFeature())
+        listOf(LoggingFeature().apply {
+            addSensitiveElementNames(setOf("wsse:Password"))
+        })
     ).apply {
         stsClientWs.configureFor(this)
     }
