@@ -25,6 +25,10 @@ fun stsClient(stsUrl: String, serviceUser: ServiceUser): STSClient {
         isAllowRenewing = false
 
         location = stsUrl
+        features = listOf(LoggingFeature().apply {
+            addSensitiveElementNames(setOf("wsse:Password"))
+        })
+
         properties = mapOf(
                 SecurityConstants.USERNAME to serviceUser.username,
                 SecurityConstants.PASSWORD to serviceUser.password
