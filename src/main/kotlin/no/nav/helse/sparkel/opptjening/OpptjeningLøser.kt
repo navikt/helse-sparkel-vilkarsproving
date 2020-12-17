@@ -26,7 +26,6 @@ class OpptjeningLøser(rapidsConnection: RapidsConnection, private val aaregClie
             validate { it.forbid("@løsning") }
             validate { it.requireKey("@id") }
             validate { it.requireKey("fødselsnummer") }
-            validate { it.requireKey("vedtaksperiodeId") }
         }.register(this)
     }
 
@@ -37,22 +36,19 @@ class OpptjeningLøser(rapidsConnection: RapidsConnection, private val aaregClie
                 aaregClient.hentArbeidsforhold(packet["fødselsnummer"].asText(), UUID.fromString(packet["@id"].asText()))
             }.also {
                 log.info(
-                    "løser behov={} for {}",
-                    keyValue("id", packet["@id"].asText()),
-                    keyValue("vedtaksperiodeId", packet["vedtaksperiodeId"].asText())
+                    "løser behov={}",
+                    keyValue("id", packet["@id"].asText())
                 )
             }
         } catch (err: ClientRequestException) {
             emptyList<Arbeidsforhold>().also {
                 log.warn(
-                    "Feilmelding for behov={} for {} ved oppslag i AAreg. Svarer med tom liste",
-                    keyValue("id", packet["@id"].asText()),
-                    keyValue("vedtaksperiodeId", packet["vedtaksperiodeId"].asText())
+                    "Feilmelding for behov={} ved oppslag i AAreg. Svarer med tom liste",
+                    keyValue("id", packet["@id"].asText())
                 )
                 sikkerlogg.warn(
-                    "Feilmelding for behov={} for {} ved oppslag i AAreg: ${err.message}. Svarer med tom liste. Response: {}",
+                    "Feilmelding for behov={} ved oppslag i AAreg: ${err.message}. Svarer med tom liste. Response: {}",
                     keyValue("id", packet["@id"].asText()),
-                    keyValue("vedtaksperiodeId", packet["vedtaksperiodeId"].asText()),
                     runBlocking { err.response.readText() },
                     err
                 )

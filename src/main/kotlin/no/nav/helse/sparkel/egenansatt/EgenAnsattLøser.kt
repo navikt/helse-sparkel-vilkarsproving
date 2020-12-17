@@ -25,7 +25,6 @@ internal class EgenAnsattLøser(rapidsConnection: RapidsConnection, private val 
             validate { it.forbid("@løsning") }
             validate { it.requireKey("@id") }
             validate { it.requireKey("fødselsnummer") }
-            validate { it.requireKey("vedtaksperiodeId") }
         }.register(this)
     }
 
@@ -39,28 +38,24 @@ internal class EgenAnsattLøser(rapidsConnection: RapidsConnection, private val 
             }
 
             log.info(
-                "løser behov {} for {}",
-                keyValue("id", packet["@id"].asText()),
-                keyValue("vedtaksperiodeId", packet["vedtaksperiodeId"].asText())
+                "løser behov {}",
+                keyValue("id", packet["@id"].asText())
             )
             sikkerlogg.info(
-                "løser behov {} for {}",
-                keyValue("id", packet["@id"].asText()),
-                keyValue("vedtaksperiodeId", packet["vedtaksperiodeId"].asText())
+                "løser behov {}",
+                keyValue("id", packet["@id"].asText())
             )
 
             context.send(packet.toJson())
         } catch (err: Exception) {
             log.warn(
-                "feil ved henting av egen ansatt: ${err.message} for behov {} for {}",
+                "feil ved henting av egen ansatt: ${err.message} for behov {}",
                 keyValue("id", packet["@id"].asText()),
-                keyValue("vedtaksperiodeId", packet["vedtaksperiodeId"].asText()),
                 err
             )
             sikkerlogg.warn(
-                "feil ved henting av egen ansatt: ${err.message} for behov {} for {}",
+                "feil ved henting av egen ansatt: ${err.message} for behov {}",
                 keyValue("id", packet["@id"].asText()),
-                keyValue("vedtaksperiodeId", packet["vedtaksperiodeId"].asText()),
                 err
             )
         }
