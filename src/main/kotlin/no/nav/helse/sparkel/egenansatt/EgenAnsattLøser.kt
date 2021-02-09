@@ -48,12 +48,12 @@ internal class EgenAnsattLøser(rapidsConnection: RapidsConnection, private val 
 
             context.send(packet.toJson())
         } catch (err: Exception) {
-            log.warn(
+            log.error(
                 "feil ved henting av egen ansatt: ${err.message} for behov {}",
                 keyValue("id", packet["@id"].asText()),
                 err
             )
-            sikkerlogg.warn(
+            sikkerlogg.error(
                 "feil ved henting av egen ansatt: ${err.message} for behov {}",
                 keyValue("id", packet["@id"].asText()),
                 err
