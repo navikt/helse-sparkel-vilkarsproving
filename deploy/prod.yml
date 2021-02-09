@@ -50,6 +50,6 @@ spec:
   - name: STS_URL
     value: https://sts.adeo.no/SecurityTokenServiceProvider/
   - name: EGENANSATT_URL
-    value: https://app.adeo.no/tpsws-aura/EgenAnsatt/v1
+    value: https://app.adeo.no/tpsws-aura/ws/EgenAnsatt/v1
   - name: AAREG_BASE_URL
     value: https://modapp.adeo.no/aareg-services/api
